@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="/Users/uuplusu/Library/Android/sdk/extras/android/m2repository/com/android/support/support-v4/19.1.0/support-v4-19.1.0.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="85f201b380937e61a9dce6ca90ccf6872abbfb67">
+        <dex dex="/Users/uuplusu/AndroidStudioProjects/opencamera/openCameraZC/build/intermediates/pre-dexed/debug/support-v4-19.1.0_387e3095b2591a36ddbfff9ab5adcb193882cb36.jar" />
+    </item>
+    <item
+        jar="/Users/uuplusu/AndroidStudioProjects/opencamera/openCameraZC/build/intermediates/exploded-aar/opencamera/sensorDataXml/unspecified/jars/libs/simple-xml-2.6.9.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="1d5b3567661c90a2df33a5319112581fcc460414">
+        <dex dex="/Users/uuplusu/AndroidStudioProjects/opencamera/openCameraZC/build/intermediates/pre-dexed/debug/simple-xml-2.6.9_492c2056c71734bbcabc7e3a89722d24d1b57429.jar" />
+    </item>
+    <item
+        jar="/Users/uuplusu/AndroidStudioProjects/opencamera/openCameraZC/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="43e86d9af55b7c732bbc968e64b1603c9c6854f2">
+        <dex dex="/Users/uuplusu/AndroidStudioProjects/opencamera/openCameraZC/build/intermediates/pre-dexed/debug/instant-run_5ee056e77fee42cda86111d5ac46b51a3b3b9259.jar" />
+    </item>
+    <item
+        jar="/Users/uuplusu/AndroidStudioProjects/opencamera/openCameraZC/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
+        jumboMode="true"
+        revision="23.0.3"
+        sha1="d18651786a1aa81430c182f56e0aa084a0ab8ad4">
+        <dex dex="/Users/uuplusu/AndroidStudioProjects/opencamera/openCameraZC/build/intermediates/pre-dexed/debug/instant-run-bootstrap_6c359d1a641739451e8d1a5d4ef71abd878488ea.jar" />
+    </item>
+
+</items>

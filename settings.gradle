@@ -1,0 +1,3 @@
+include ':mySensorListenerTest'
+include ':sensorDataXml'
+include ':openCameraZC'
