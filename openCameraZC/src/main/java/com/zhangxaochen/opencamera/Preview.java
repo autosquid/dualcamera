@@ -106,6 +106,11 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 	private boolean has_aspect_ratio = false;
 	private double aspect_ratio = 0.0f;
 	private Camera camera = null;
+
+	public void setCameraId(int cameraId) {
+		this.cameraId = cameraId;
+	}
+
 	private int cameraId = 0;
 	private boolean is_video = false;
 	private MediaRecorder video_recorder = null;
@@ -777,8 +782,8 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 	private void openCamera(String toast_message) {
 		long debug_time = 0;
 		if( MyDebug.LOG ) {
-			Log.d(TAG, "openCamera()");
-			Log.d(TAG, "cameraId: " + cameraId);
+			Log.d(TAG, "which openCamera()");
+			Log.d(TAG, "which cameraId: " + cameraId);
 			debug_time = System.currentTimeMillis();
 		}
 		// need to init everything now, in case we don't open the camera (but these may already be initialised from an earlier call - e.g., if we are now switching to another camera)
@@ -2965,6 +2970,28 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 					main_activity.setSeekBarExposure();
 				}
 			}
+		}
+	}
+
+
+	void switchToCamera(int cameraSwitchingTo) {
+		int n_cameras = Camera.getNumberOfCameras();
+		if(cameraSwitchingTo < n_cameras) {
+			closeCamera();
+			cameraId = cameraSwitchingTo;
+			Camera.CameraInfo info = new Camera.CameraInfo();
+			Camera.getCameraInfo(cameraId, info);
+			if( info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT ) {
+				showToast(switch_camera_toast, R.string.front_camera);
+			}
+			else {
+				showToast(switch_camera_toast, R.string.back_camera + String.valueOf(cameraId));
+			}
+			//zoom_factor = 0; // reset zoom when switching camera
+			this.openCamera();
+
+			// we update the focus, in case we weren't able to do it when switching video with a camera that didn't support focus modes
+			updateFocusForVideo(true);
 		}
 	}
 

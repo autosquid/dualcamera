@@ -37,6 +37,7 @@ import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 import android.os.StatFs;
 import android.os.StrictMode;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images.ImageColumns;
@@ -139,33 +140,10 @@ public class MainActivity extends AppCompatActivity {
     public boolean is_test = false;
     public Bitmap gallery_bitmap = null;
 
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case 1: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // permission granted and now can proceed
-                    //TODO: here to operate.
-
-                } else {
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                    Toast.makeText(MainActivity.this, "Permission denied to read your External storage", Toast.LENGTH_SHORT).show();
-                }
-                return;
-            }
-            // add other cases for more permissions
-        }
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         ActivityCompat.requestPermissions(MainActivity.this,
                 new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
-
 
 
         if (MyDebug.LOG) {
@@ -299,8 +277,7 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("---------------cid: " + cid);
         } else {
             Builder builder = new Builder(this);
-            builder
-                    .setTitle("未插入SIM卡")
+            builder.setTitle("未插入SIM卡")
                     .setMessage("hasIccCard==false, 点击“继续”以采集IMU数据；点击“退出”退出程序。")
                     .setPositiveButton("继续", null)
                     .setNegativeButton("退出", new OnClickListener() {
@@ -309,10 +286,9 @@ public class MainActivity extends AppCompatActivity {
                             System.exit(-1);
                         }
                     });
-            Dialog noIccCardDlg = builder.create();
-            noIccCardDlg.show();
         }
 
+        // this is to overcome file share problem
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
 
@@ -838,7 +814,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void onOrientationChanged(int orientation) {
         /*if( MyDebug.LOG ) {
-			Log.d(TAG, "onOrientationChanged()");
+            Log.d(TAG, "onOrientationChanged()");
 			Log.d(TAG, "orientation: " + orientation);
 			Log.d(TAG, "current_orientation: " + current_orientation);
 		}*/
@@ -871,10 +847,41 @@ public class MainActivity extends AppCompatActivity {
         super.onConfigurationChanged(newConfig);
     }
 
-    public void clickedTakePhoto(View view) {
+
+    private void takeTwoPicture(int cameraSwitchingTo) {
+        //TODO: wait till ok
         if (MyDebug.LOG)
-            Log.d(TAG, "clickedTakePhoto");
-        this.takePicture();
+            Log.d(TAG, "which should take Picture" + String.valueOf(cameraSwitchingTo));
+        closePopup();
+
+        // camera id == 0
+        Log.d(TAG, "---------");
+        Log.d(TAG, "Before Taking A Picture, which camera is this? " + String.valueOf(this.preview.getCameraId()));
+
+        this.preview.takePicturePressed();
+        Log.d(TAG, "which camera is this? " + String.valueOf(this.preview.getCameraId()));
+        SystemClock.sleep(10000);
+
+//        preview.onPause();
+//        preview.setCameraId(2 - cameraSwitchingTo);
+        preview.switchToCamera(2-cameraSwitchingTo);
+//        preview.onResume();
+        Log.d(TAG, "After Switch, which camera is this? " + String.valueOf(this.preview.getCameraId()));
+        Log.d(TAG, "===================");
+    }
+
+    int currentCamID;
+
+    public void autoClickedTakePhoto(View view) {
+        this.takeTwoPicture(0);
+        SystemClock.sleep(10000);
+        this.takeTwoPicture(2);
+    }
+
+    public void clickedTakePhoto(View view) {
+            preview.switchToCamera(currentCamID);
+            preview.takePicturePressed();
+            currentCamID = 2-currentCamID;
     }
 
     public void clickedSwitchCamera(View view) {
@@ -1303,7 +1310,7 @@ public class MainActivity extends AppCompatActivity {
     private void setImmersiveMode(boolean on) {
         // Andorid 4.4 immersive mode disabled for now, as not clear of a good way to enter and leave immersive mode, and "sticky" might annoy some users
         /*if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ) {
-        	if( on )
+            if( on )
         		getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
         	else
         		getWindow().getDecorView().setSystemUiVisibility(0);
@@ -1446,8 +1453,8 @@ public class MainActivity extends AppCompatActivity {
         int top = galleryButton.getPaddingTop();
         int right = galleryButton.getPaddingRight();
         int left = galleryButton.getPaddingLeft();
-	    /*if( MyDebug.LOG )
-			Log.d(TAG, "padding: " + bottom);*/
+        /*if( MyDebug.LOG )
+            Log.d(TAG, "padding: " + bottom);*/
         galleryButton.setImageBitmap(null);
         galleryButton.setImageResource(R.drawable.gallery);
         // workaround for setImageResource also resetting padding, Android bug
@@ -1647,8 +1654,8 @@ public class MainActivity extends AppCompatActivity {
                             .show();
                     setWindowFlagsForCamera();
                 }
-				/*else if( which == new_index ) {
-					if( MyDebug.LOG )
+                /*else if( which == new_index ) {
+                    if( MyDebug.LOG )
 						Log.d(TAG, "selected choose new folder");
 		    		FolderChooserDialog fragment = new FolderChooserDialog();
 		    		fragment.setStyle(DialogFragment.STYLE_NORMAL, theme);
@@ -1733,8 +1740,13 @@ public class MainActivity extends AppCompatActivity {
         if (MyDebug.LOG)
             Log.d(TAG, "takePicture");
         closePopup();
+
+        // camera id == 0
+        Log.d(TAG, "===================");
+        Log.d(TAG, "Before Taking A Picture, which camera is this? " + String.valueOf(this.preview.getCameraId()));
         this.preview.takePicturePressed();
     }
+
 
     void lockScreen() {
         ((ViewGroup) findViewById(R.id.locker)).setOnTouchListener(new View.OnTouchListener() {
