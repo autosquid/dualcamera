@@ -5852,8 +5852,10 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 					.setPersister(_persister)
 					.execute();
 
-			Toast.makeText(_mainActivity, "picNames, etc"+_mainActivity._picNames.size()+", "+_mainActivity._picTimestamps.size(), Toast.LENGTH_SHORT).show();
-			Log.i(TAG, "---------------"+_mainActivity.getSaveLocation()+", "+_projXmlName+", "+dataXmlName);
+			Toast.makeText(_mainActivity, "picNames, etc"+
+					_mainActivity._picNames.size()+", "+
+					_mainActivity._picTimestamps.size(), Toast.LENGTH_SHORT).show();
+			Log.i(TAG, "---------------"+_mainActivity.getSaveLocation()+", "+_projXmlName+", "+dataXmlName+", "+_mainActivity._picNames.get(0) );
 
 			//---------------异步写配置文件
 			WriteConfXmlTask confXmlTask = new WriteConfXmlTask(
