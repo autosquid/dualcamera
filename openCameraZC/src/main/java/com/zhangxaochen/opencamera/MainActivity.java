@@ -864,7 +864,7 @@ public class MainActivity extends AppCompatActivity {
 
 //        preview.onPause();
 //        preview.setCameraId(2 - cameraSwitchingTo);
-        preview.switchToCamera(2-cameraSwitchingTo);
+        preview.switchToCamera(2 - cameraSwitchingTo);
 //        preview.onResume();
         Log.d(TAG, "After Switch, which camera is this? " + String.valueOf(this.preview.getCameraId()));
         Log.d(TAG, "===================");
@@ -879,9 +879,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void clickedTakePhoto(View view) {
-            preview.switchToCamera(currentCamID);
-            preview.takePicturePressed();
-            currentCamID = 2-currentCamID;
+        preview.switchToCamera(currentCamID);
+        preview.takePicturePressed();
+        currentCamID = 2 - currentCamID;
     }
 
     public void clickedSwitchCamera(View view) {
@@ -1834,7 +1834,7 @@ public class MainActivity extends AppCompatActivity {
                     }
             );
             if (is_new_picture) {
-    	        /*ContentValues values = new ContentValues();
+                /*ContentValues values = new ContentValues();
     	        values.put(ImageColumns.TITLE, file.getName().substring(0, file.getName().lastIndexOf(".")));
     	        values.put(ImageColumns.DISPLAY_NAME, file.getName());
     	        values.put(ImageColumns.DATE_TAKEN, System.currentTimeMillis());
