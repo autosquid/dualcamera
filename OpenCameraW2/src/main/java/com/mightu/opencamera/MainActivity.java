@@ -681,10 +681,6 @@ public class MainActivity extends AppCompatActivity {
             view = findViewById(R.id.bt_new_save);
             view.setRotation(ui_rotation);
 
-            //zhangxaochen:
-            view = findViewById(R.id.choose_proj_path);
-            view.setRotation(ui_rotation);
-
             view = findViewById(R.id.switch_sensor_split);
             view.setRotation(ui_rotation);
 
@@ -976,15 +972,6 @@ public class MainActivity extends AppCompatActivity {
 
         Toast.makeText(this, "Save to New Folder: "+ new_save_location, Toast.LENGTH_LONG);
     }
-
-    public void clickedChooseProjPath(View view) {
-        if (MyDebug.LOG)
-            Log.d(TAG, "clickedChooseProjPath");
-
-        //TODO:
-        FolderChooserDialog fragment = new FolderChooserDialog();
-        fragment.show(getFragmentManager(), "FOLDER_FRAGMENT");
-    }//clickedChooseProjPath
 
     public void clickedSwitchVideo(View view) {
         if (MyDebug.LOG)

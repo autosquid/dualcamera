@@ -70,17 +70,6 @@
             android:src="@drawable/sensor_he" />
 
         <ImageButton
-            android:id="@+id/choose_proj_path"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_alignLeft="@+id/switch_camera"
-            android:layout_alignParentTop="true"
-            android:onClick="clickedChooseProjPath"
-            android:padding="10dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/proj_path" />
-
-        <ImageButton
             android:id="@+id/switch_camera"
             android:layout_width="50dp"
             android:layout_height="50dp"
