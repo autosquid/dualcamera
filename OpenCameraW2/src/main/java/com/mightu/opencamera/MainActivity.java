@@ -951,15 +951,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }//clickedSensorStart
 
-    public void fastDefaultNewFolder() {
+    public void fastDefaultNewFolder(View view) {
         Log.d(TAG, "fast new folder");
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String folder_name = sharedPreferences.getString("preference_save_location", "OpenCamera");
 
         Date d = new Date();
         String new_save_location = DateFormat.format("yyyy-MM-dd-HH-mm-ss", d.getTime()).toString();
 
-        File new_folder = new File(new File(getBaseFolder(), folder_name), new_save_location);
+        File new_folder = new File(new File(getBaseFolder(), getString(R.string.parent_folder_name)), new_save_location);
 
         if (!new_folder.exists()) {
             if (MyDebug.LOG)
@@ -972,8 +971,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("preference_save_location", new_save_location);
+        editor.putString("preference_save_location", new_folder.getAbsolutePath());
         editor.apply();
+
+        Toast.makeText(this, "Save to New Folder: "+ new_save_location, Toast.LENGTH_LONG);
     }
 
     public void clickedChooseProjPath(View view) {
