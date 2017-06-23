@@ -3,30 +3,12 @@
 
     <item
         is-multidex="false"
-        jar="/Users/uuplusu/AndroidStudioProjects/opencamera/sensorDataXml/build/intermediates/bundles/default/classes.jar"
+        jar="/Users/uuplusu/AndroidStudioProjects/opencamera/OpenCameraW2/libs/simple-xml-2.6.9.jar"
         jumboMode="false"
         optimize="true"
         revision="25.0.2"
-        sha1="532e1be7f77d316dd65f88d8b3aa4d0ea40fef7a">
-        <dex dex="/Users/uuplusu/AndroidStudioProjects/opencamera/openCameraZC/build/intermediates/pre-dexed/debug/classes_c080b9c29fbfc2a9e4d7a7a4037cea76c3036e2a.jar" />
-    </item>
-    <item
-        is-multidex="false"
-        jar="/Users/uuplusu/AndroidStudioProjects/opencamera/sensorDataXml/build/intermediates/bundles/default/libs/simple-xml-2.6.9.jar"
-        jumboMode="false"
-        optimize="true"
-        revision="25.0.2"
-        sha1="0fcad6f653f9d90ba6de744aa641b3f0335d10c3">
-        <dex dex="/Users/uuplusu/AndroidStudioProjects/opencamera/openCameraZC/build/intermediates/pre-dexed/debug/simple-xml-2.6.9_d5d75f31c4fed43f849c44894083b80a70668024.jar" />
-    </item>
-    <item
-        is-multidex="false"
-        jar="/Users/uuplusu/AndroidStudioProjects/opencamera/mySensorListenerTest/build/intermediates/bundles/default/classes.jar"
-        jumboMode="false"
-        optimize="true"
-        revision="25.0.2"
-        sha1="33a4ff47b36d0b8f41af5eddff196481e9d2e13d">
-        <dex dex="/Users/uuplusu/AndroidStudioProjects/opencamera/openCameraZC/build/intermediates/pre-dexed/debug/classes_71ba3aec3c87251e661744d78ee2f4374cd9fb14.jar" />
+        sha1="80246b5ac12bb6d2041abac4d4ea913f598e8af6">
+        <dex dex="/Users/uuplusu/AndroidStudioProjects/opencamera/OpenCameraW2/build/intermediates/pre-dexed/debug/simple-xml-2.6.9_11bd444020b367608d23d21582771c3086b3bed0.jar" />
     </item>
 
 </items>

@@ -9,9 +9,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/mySensorListenerTest" />
-            <option value="$PROJECT_DIR$/openCameraZC" />
-            <option value="$PROJECT_DIR$/sensorDataXml" />
+            <option value="$PROJECT_DIR$/OpenCameraW2" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
