@@ -74,7 +74,11 @@ import android.widget.ZoomControls;
 import com.mightu.opencamera.CameraController.CameraControllerManager;
 import com.mightu.opencamera.CameraController.CameraControllerManager2;
 
+import org.simpleframework.xml.core.Persister;
+import org.simpleframework.xml.stream.Format;
+
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -122,12 +126,21 @@ public class MainActivity extends AppCompatActivity {
     //2015-4-13 21:33:27， 采集 IMU数据变为增加采集 BSSS 数据
     TelephonyManager _tManager;
 
-
     // for testing:
     public boolean is_test = false;
     public Bitmap gallery_bitmap = null;
     private boolean supports_camera2 = false;
     private int ncam;
+
+    //2015-4-14 23:02:36
+    boolean _captureStarted = false;
+    Persister _persister = new Persister(new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
+
+    final String _projXmlName = "collection-proj.xml";
+
+    final String _dataXmlPrefix = "sensor";
+    final String _dataXmlExt = "xml";
+
 
     private void setupPermissions() {
         String[] permissionsWeNeed = new String[]{
@@ -163,6 +176,86 @@ public class MainActivity extends AppCompatActivity {
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
+
+    //zhangxaochen:
+    void startCaptureSensor(NewSessionNode nsNode) {
+        //2015-4-14 23:03:51： 加这个 _captureStarted flag， 防止先点录像按钮，导致 conf xml 文件中多记录了video文件名：
+        _captureStarted = true;
+        double beginTime = System.currentTimeMillis() * Consts.MS2S;
+        nsNode.setBeginTime(beginTime);
+        this._listener.set_baseTimestamp(beginTime / Consts.MS2S);
+        this._listener._allowStoreData = true;
+        System.out.println("setBeginTime: " + beginTime);
+    }//startCaptureSensor
+
+    void stopCaptureSensor(NewSessionNode nsNode) {
+		/* 结束sensor数据采集 */
+        //2015-4-14 23:05:03
+        _captureStarted = false;
+        nsNode.setEndTime(System.currentTimeMillis() * Consts.MS2S);
+        nsNode.addNode(this._listener.getSensorData());
+        System.out.println("+++++++++++++++1");
+
+        try {
+            String dataFolderName = this.getSaveLocation();
+            File projFolder = new File(dataFolderName);
+            System.out.println("projFolder: " + projFolder + ", " + projFolder.isDirectory() + ", " + dataFolderName);
+            if (!projFolder.isDirectory() && !dataFolderName.contains("/")) { //最可能“OpenCamera”
+                this._listener.reset();
+                Builder builder = new Builder(this);
+                builder
+                        .setTitle("保存位置错误")
+                        .setMessage("请在'OpenCamera'目录下新建子工程目录，以免不同次采集的数据混杂")
+                        .setNegativeButton("放弃本次", null);
+                builder.show();
+
+                return;
+            }
+            //计数： 当前目录有多少 sensor_xxx.xml?
+            int cntDataXml = projFolder.list(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String filename) {
+                    return filename.contains(_dataXmlPrefix) && filename.endsWith(_dataXmlExt);
+                }
+            }).length;
+            String dataXmlName = _dataXmlPrefix + "_" + cntDataXml + "." + _dataXmlExt;
+            File dataXmlFile = new File(projFolder, dataXmlName);
+            System.out.println("+++++++++++++++2");
+
+            //--------------- 传感器数据 异步存文件
+            WriteDataXmlTask dataXmlTask = new WriteDataXmlTask() {
+                @Override
+                protected void onPostExecute(Void result) {
+                    super.onPostExecute(result);
+                    _saveDataXmlFinished = true;
+//				enableCaptureButton();
+                }//onPostExecute
+            };
+            dataXmlTask.setXmlRootNode(nsNode)
+                    .setFile(dataXmlFile)
+                    .setPersister(_persister)
+                    .execute();
+
+            Toast.makeText(this, "picNames, etc" +
+                    this._picNames.size() + ", " +
+                    this._picTimestamps.size(), Toast.LENGTH_SHORT).show();
+            Log.i(TAG, "---------------" + this.getSaveLocation() + ", " + _projXmlName + ", " + dataXmlName + ", " + this._picNames.get(0));
+
+            //---------------异步写配置文件
+            WriteConfXmlTask confXmlTask = new WriteConfXmlTask(
+                    this, _persister,
+                    new File(this.getSaveLocation(), _projXmlName),
+                    dataXmlName);
+            confXmlTask.execute();
+            System.out.println("+++++++++++++++3");
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        // _listener 不 unregister， 但是 reset 以禁止存数据到内存
+        this._listener.reset();
+    }//stopCaptureSensor
 
     private void initCamera2Support() {
         if (MyDebug.LOG)
@@ -941,9 +1034,9 @@ public class MainActivity extends AppCompatActivity {
         btnSensorSplit.setEnabled(!_isSensorOn);
 
         if (_isSensorOn)
-            preview.startCaptureSensor(_newSessionNode);
+            startCaptureSensor(_newSessionNode);
         else {
-            preview.stopCaptureSensor(_newSessionNode);
+            stopCaptureSensor(_newSessionNode);
         }
     }//clickedSensorStart
 

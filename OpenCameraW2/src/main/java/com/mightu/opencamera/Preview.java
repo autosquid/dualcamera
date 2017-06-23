@@ -258,28 +258,21 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 
     //zhangxaochen:
     MainActivity _mainActivity = null;
-    Persister _persister = new Persister(new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
-
-    final String _projXmlName = "collection-proj.xml";
-
-    final String _dataXmlPrefix = "sensor";
-    final String _dataXmlExt = "xml";
-
-    //2015-4-14 23:02:36
-    boolean _captureStarted = false;
 
 
 
+
+    /**
+     * 存在bug在sumsung手机上，如果设置时间为(2*interval, interval)，那么
+     * 第一下的onTick将在Timer启动时候调用，而不是在interval时候调用。
+     *
+     * 用了比较naive的方法来解决，设置总时间为3个时间间隔，在第二个onTick调用时候，拍摄照片
+     */
     class capture_sensor_and_picture_t extends CountDownTimer {
         private Camera.ShutterCallback shutterCallback;
         private Camera camera;
         Camera.PictureCallback jpegPictureCallback;
-        /**
-         * 存在bug在sumsung手机上，如果设置时间为(2*interval, interval)，那么
-         * 第一下的onTick将在Timer启动时候调用，而不是在interval时候调用。
-         *
-         * 用了比较naive的方法来解决，设置总时间为3个时间间隔，在第二个onTick调用时候，拍摄照片
-         */
+
 
         public capture_sensor_and_picture_t(Camera _camera, Camera.ShutterCallback _shutterCallback,
                                             Camera.PictureCallback jpegPictureCallback,
@@ -293,12 +286,6 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
         private int cnt = 0;
 
         NewSessionNode _newSessionNode = null;
-//    		        Persister _persister = new Persister(new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
-//
-//    		        final String _projXmlName = "collection-proj.xml";
-//
-//    		    	final String _dataXmlPrefix = "sensor";
-//    		    	final String _dataXmlExt = "xml";
 
         @Override
         public void onTick(long millisUntilFinished) {
@@ -306,14 +293,8 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 
             if (cnt == 0) {
                 _newSessionNode = new NewSessionNode();
-                startCaptureSensor(_newSessionNode);
-//    		    			double beginTime=System.currentTimeMillis() * Consts.MS2S;
-//    		    			_newSessionNode.setBeginTime(beginTime);
-//    		    			_mainActivity._listener.set_baseTimestamp(beginTime/Consts.MS2S);
-//    		    			_mainActivity._listener._allowStoreData = true;
-//    		                System.out.println("setBeginTime: " + beginTime);
-            }
-    		    		/* 第二次tick的时候拍照 */
+                _mainActivity.startCaptureSensor(_newSessionNode);
+            }    		    		/* 第二次tick的时候拍照 */
             else if (cnt == 1) {
                 camera.takePicture(shutterCallback, null, jpegPictureCallback);
             }
@@ -323,46 +304,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 
         @Override
         public void onFinish() {
-//    		    		/* 结束sensor数据采集 */
-//    		    		_newSessionNode.setEndTime(System.currentTimeMillis() * Consts.MS2S);
-//    		    		_newSessionNode.addNode(_mainActivity._listener.getSensorData());
-//
-//    		    		String dataFolderName = _mainActivity.getSaveLocation();
-//    		    		File projFolder = new File(dataFolderName);
-//    		    		//计数： 当前目录有多少 sensor_xxx.xml?
-//    		    		int cntDataXml = projFolder.list(new FilenameFilter() {
-//							@Override
-//							public boolean accept(File dir, String filename) {
-//								return filename.contains(_dataXmlPrefix) && filename.endsWith(_dataXmlExt);
-//							}
-//						}).length;
-//    		    		String dataXmlName = _dataXmlPrefix + "_" + cntDataXml + "." + _dataXmlExt;
-//    		    		File dataXmlFile = new File(projFolder, dataXmlName);
-//
-//    		    		//--------------- 传感器数据 异步存文件
-//    		    		WriteDataXmlTask dataXmlTask = new WriteDataXmlTask() {
-//    		    			@Override
-//    		    			protected void onPostExecute(Void result) {
-//    		    				super.onPostExecute(result);
-//    		    				_mainActivity._saveDataXmlFinished = true;
-////    		    				enableCaptureButton();
-//    		    			}//onPostExecute
-//    		    		};
-//    		    		dataXmlTask.setXmlRootNode(_newSessionNode)
-//    		    		.setFile(dataXmlFile)
-//    		    		.setPersister(_persister)
-//    		    		.execute();
-//
-//    		    		//---------------异步写配置文件
-//    		    		WriteConfXmlTask confXmlTask = new WriteConfXmlTask(
-//    		    				_mainActivity, _persister,
-//    		    				new File(_mainActivity.getSaveLocation(), _projXmlName),
-//    		    				dataXmlName);
-//    		    		confXmlTask.execute();
-//
-//    		    		// _listener 不 unregister， 但是 reset 以禁止存数据到内存
-//    		    		_mainActivity._listener.reset();
-            stopCaptureSensor(_newSessionNode);
+            _mainActivity.stopCaptureSensor(_newSessionNode);
         } // onFinish
 
     }//capture_sensor_and_picture_t
@@ -409,20 +351,6 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
         location_bitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.earth);
         location_off_bitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.earth_off);
     }
-
-	/*private void previewToCamera(float [] coords) {
-		float alpha = coords[0] / (float)this.getWidth();
-		float beta = coords[1] / (float)this.getHeight();
-		coords[0] = 2000.0f * alpha - 1000.0f;
-		coords[1] = 2000.0f * beta - 1000.0f;
-	}*/
-
-	/*private void cameraToPreview(float [] coords) {
-		float alpha = (coords[0] + 1000.0f) / 2000.0f;
-		float beta = (coords[1] + 1000.0f) / 2000.0f;
-		coords[0] = alpha * (float)this.getWidth();
-		coords[1] = beta * (float)this.getHeight();
-	}*/
 
     private void calculateCameraToPreviewMatrix() {
         camera_to_preview_matrix.reset();
@@ -4186,7 +4114,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
                 }
 
                 //2015-4-14 23:06:12， 先按了IMU开始按钮，才允许记录 videoFname
-                if (_captureStarted) {
+                if (_mainActivity._captureStarted) {
                     String videoFname = videoFile.getName();
                     _mainActivity._picNames.add(videoFname);
                     Double epochTime = System.currentTimeMillis() * Consts.MS2S;
@@ -5684,85 +5612,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
         return focus_success == FOCUS_WAITING;
     }
 
-    //zhangxaochen:
-    void startCaptureSensor(NewSessionNode nsNode) {
-        //2015-4-14 23:03:51： 加这个 _captureStarted flag， 防止先点录像按钮，导致 conf xml 文件中多记录了video文件名：
-        _captureStarted = true;
-        double beginTime = System.currentTimeMillis() * Consts.MS2S;
-        nsNode.setBeginTime(beginTime);
-        _mainActivity._listener.set_baseTimestamp(beginTime / Consts.MS2S);
-        _mainActivity._listener._allowStoreData = true;
-        System.out.println("setBeginTime: " + beginTime);
-    }//startCaptureSensor
 
-    void stopCaptureSensor(NewSessionNode nsNode) {
-		/* 结束sensor数据采集 */
-        //2015-4-14 23:05:03
-        _captureStarted = false;
-        nsNode.setEndTime(System.currentTimeMillis() * Consts.MS2S);
-        nsNode.addNode(_mainActivity._listener.getSensorData());
-        System.out.println("+++++++++++++++1");
-
-        try {
-            String dataFolderName = _mainActivity.getSaveLocation();
-            File projFolder = new File(dataFolderName);
-            System.out.println("projFolder: " + projFolder + ", " + projFolder.isDirectory() + ", " + dataFolderName);
-            if (!projFolder.isDirectory() && !dataFolderName.contains("/")) { //最可能“OpenCamera”
-                _mainActivity._listener.reset();
-                Builder builder = new Builder(this.getContext());
-                builder
-                        .setTitle("保存位置错误")
-                        .setMessage("请在'OpenCamera'目录下新建子工程目录，以免不同次采集的数据混杂")
-                        .setNegativeButton("放弃本次", null);
-                builder.show();
-
-                return;
-            }
-            //计数： 当前目录有多少 sensor_xxx.xml?
-            int cntDataXml = projFolder.list(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String filename) {
-                    return filename.contains(_dataXmlPrefix) && filename.endsWith(_dataXmlExt);
-                }
-            }).length;
-            String dataXmlName = _dataXmlPrefix + "_" + cntDataXml + "." + _dataXmlExt;
-            File dataXmlFile = new File(projFolder, dataXmlName);
-            System.out.println("+++++++++++++++2");
-
-            //--------------- 传感器数据 异步存文件
-            WriteDataXmlTask dataXmlTask = new WriteDataXmlTask() {
-                @Override
-                protected void onPostExecute(Void result) {
-                    super.onPostExecute(result);
-                    _mainActivity._saveDataXmlFinished = true;
-//				enableCaptureButton();
-                }//onPostExecute
-            };
-            dataXmlTask.setXmlRootNode(nsNode)
-                    .setFile(dataXmlFile)
-                    .setPersister(_persister)
-                    .execute();
-
-            Toast.makeText(_mainActivity, "picNames, etc" +
-                    _mainActivity._picNames.size() + ", " +
-                    _mainActivity._picTimestamps.size(), Toast.LENGTH_SHORT).show();
-            Log.i(TAG, "---------------" + _mainActivity.getSaveLocation() + ", " + _projXmlName + ", " + dataXmlName + ", " + _mainActivity._picNames.get(0));
-
-            //---------------异步写配置文件
-            WriteConfXmlTask confXmlTask = new WriteConfXmlTask(
-                    _mainActivity, _persister,
-                    new File(_mainActivity.getSaveLocation(), _projXmlName),
-                    dataXmlName);
-            confXmlTask.execute();
-            System.out.println("+++++++++++++++3");
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        // _listener 不 unregister， 但是 reset 以禁止存数据到内存
-        _mainActivity._listener.reset();
-    }//stopCaptureSensor
 }//Preview
 
 /**
@@ -5840,15 +5690,6 @@ class WriteConfXmlTask extends AsyncTask<Void, Void, Void> {
         _dataXmlFname = dataXmlFname;
     }//WriteConfXmlTask
 
-    /**
-     * @param p,        SimpleXml persister
-     * @param confFile, 暂定对应的是配置文件， 而不是工程路径 File
-     */
-//	public void initParams(Persister p, File confFile, String dataXmlFname){
-//		_persister = p;
-//		_confFile = confFile;
-//		_dataXmlFname = dataXmlFname;
-//	}
     @Override
     protected Void doInBackground(Void... params) {
         System.out.println("WriteConfXmlTask.doInBackground()");
