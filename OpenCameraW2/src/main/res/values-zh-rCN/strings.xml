@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">华为采集程序</string>
+    <string name="action_settings">设置</string>
+    <string name="action_popup">弹出设置</string>
+    <string name="intro_text">触摸屏幕对焦，点击蓝色相机按钮拍照。获取更多帮助，请点击设置->在线帮助。
+
+隐私政策：为使用地理标签，需要允许获取您的位置，此选项默认是禁用的。如果启用，您的位置信息将会保存在相片文件中（仅此一项用途）。
+
+（此消息将不再弹出。）</string>
+    <string name="intro_ok">确定（此消息将不再弹出）</string>
+    
+    <string name="answer_yes">是</string>
+    <string name="answer_no">否</string>
+
+    <string name="on">开启</string> <!-- whether a setting is turned on, e.g., "Auto-stabilise: On" -->
+    <string name="off">关闭</string> <!-- whether a setting is turned off, e.g., "Auto-stabilise: Off" -->
+    
+    <string name="choose_save_location">选择保存位置：</string>
+    <string name="clear_folder_history">清除文件夹历史记录</string>
+    <string name="clear_folder_history_question">清除文件夹历史记录？</string>
+    <string name="changed_save_location">更改保存位置到：</string>
+    <string name="stopped_recording_video">停止录像</string>
+    <string name="repeats_to_go">重复</string> <!--  intentionally starts lower case -->
+    <string name="failed_to_reconnect_camera">重新连接相机设备失败</string>
+    <string name="video_may_be_corrupted">错误！视频文件可能损坏</string>
+    <string name="not_supported">您的设备不支持</string> <!--  intentionally starts lower case -->
+    <string name="video_error_unknown">未知错误！视频终止</string>
+    <string name="video_error_server_died">服务器停止，视频终止</string>
+    <string name="video_max_duration">视频达到最大时长限制</string>
+    <string name="video_max_filesize">视频达到最大文件限制</string>
+    <string name="exposure_compensation">曝光补偿</string>
+    <string name="front_camera">前置摄像头</string>
+    <string name="back_camera">后置摄像头</string>
+    <string name="photo">照片</string>
+    <string name="video">视频</string>
+    <string name="exposure_locked">曝光已锁定</string>
+    <string name="exposure_unlocked">曝光已解锁</string>
+    <string name="cancelled_timer">定时器已取消</string>
+    <string name="started_timer">定时器已启动</string>
+    <string name="failed_to_save_video">保存视频文件失败</string>
+    <string name="failed_to_record_video">录像失败</string>
+    <string name="started_recording_video">录像已启动</string>
+    <string name="sorry">对不起</string>
+    <string name="failed_to_save_image">保存图片文件失败</string>
+    <string name="failed_to_save_photo">保存照片失败</string>
+    <string name="failed_to_auto_stabilise">自动防抖失败</string>
+    <string name="failed_to_start_camera_preview">启动相机预览失败</string>
+    <string name="taking_photo">正在拍照</string>
+    <string name="failed_to_take_picture">拍照失败</string>
+    <string name="photo_deleted">照片已删除</string>
+    <string name="no_gallery_app">无可用图库应用</string>
+    <string name="screen_is_locked">屏幕已锁定\n滑动屏幕以解锁</string>
+    <string name="unlocked">以解锁</string>
+    <string name="auto_stabilise_not_supported">对不起，此设备不支持\n自动防抖</string>
+    <string name="audio_disabled">音频已禁用</string>
+    <string name="max_duration">最大持续时间</string>
+    <string name="scene_mode">场景模式</string>
+    
+    <string name="angle">角度</string>
+    <string name="direction">方向</string>
+    <string name="failed_to_open_camera_1">启动相机失败。</string>
+    <string name="failed_to_open_camera_2">相机可能正在使用中</string>
+    <string name="failed_to_open_camera_3">被其他应用程序？</string>
+    <string name="zoom">缩放</string>
+    <string name="free_memory">可用存储</string>
+    <string name="screen_lock_message_1">[已锁：</string>
+    <string name="screen_lock_message_2">滑动以解锁]</string>
+    
+    <string name="preference_category_camera_effects">相机特效</string>
+    <string name="preference_auto_stabilise">自动防抖</string>
+    <string name="preference_auto_stabilise_summary">照片会被自动旋转为水平状态（仅拍照）（拍照会变慢，并可能无法在内存不足的设备上使用此功能）</string>
+    <string name="preference_color_effect">选用颜色特效</string>
+    <string name="preference_color_effect_summary">将所选颜色特效应用到照片上</string>
+    <string name="preference_scene_mode">选用场景模式</string>
+    <string name="preference_scene_mode_summary">对不同场景下的拍照进行优化</string>
+    <string name="preference_white_balance">白平衡设置</string>
+    <string name="preference_white_balance_summary">选择一项以调整白平衡</string>
+    <string name="preference_iso">设置 ISO</string>
+    <string name="preference_iso_summary">值越大表示对光强越敏感（在某些设备上可能失败）</string>
+    <string name="preference_exposure">设置曝光补偿</string>
+    <string name="preference_exposure_summary">默认曝光补偿值为 0</string>
+    <string name="preference_lock_orientation">锁定拍照/录像设备朝向</string>
+    <string name="preference_lock_orientation_summary">若设定，拍照/录像朝向会以此为准，原设备朝向设定被忽略。</string>
+    <string name="preference_face_detection">面部检测</string>
+    <string name="preference_face_detection_summary">使用人脸检测代替区域对焦。</string>
+
+    <string name="preference_category_camera_controls">相机控件</string>
+    <string name="preference_timer">定时器</string>
+    <string name="preference_timer_summary">为相机设定一个定时器。</string>
+    <string name="preference_timer_beep">定时器蜂鸣</string>
+    <string name="preference_timer_beep_summary">定时器倒计时（或连拍延时）时鸣响</string>
+    <string name="preference_burst_mode">连拍模式</string>
+    <string name="preference_burst_mode_summary">连续拍摄多张照片</string>
+    <string name="preference_burst_interval">连拍延时</string>
+    <string name="preference_burst_interval_summary">设定连拍模式下拍照间隔延时（如果有）</string>
+    <string name="preference_screen_camera_controls_more">更多相机控件设置...</string>
+    <string name="preference_pause_preview">拍照后暂停</string>
+    <string name="preference_pause_preview_summary">拍照后暂停屏幕，以便分享或者删除照片</string>
+    <string name="preference_shutter_sound">快门声音</string>
+    <string name="preference_shutter_sound_summary">拍照时播放快门音（若要禁用，需要系统为 Android 4.2 及以上）</string>
+    <string name="preference_volume_keys">音量键</string>
+    <string name="preference_volume_keys_summary">设置按下音量键时的操作</string>
+    <string name="preference_save_location">保存位置设置</string>
+    <string name="preference_save_location_summary">用于存放照片/视频文件的目录</string>
+    <string name="preference_show_when_locked">锁屏时显示相机</string>
+    <string name="preference_show_when_locked_summary">若启用，相机会显示在任何锁屏界面之上（您仍需解锁以访问设置项、照片库等等）</string>
+    <string name="preference_lock_video">录像时锁屏</string>
+    <string name="preference_lock_video_summary">录像时，应用界面会被锁定，以防误操作导致录像停止。滑动屏幕以解锁。注意：应用被切换到后台，或关闭屏幕，都会导致录像停止。</string>
+    <string name="preference_rotate_preview">旋转预览界面</string>
+    <string name="preference_rotate_preview_summary">选择以旋转预览界面（不会影响拍照/录像结果）</string>
+    <string name="preference_screen_gui">界面功能设置...</string>
+    <string name="preference_preview_size">预览界面尺寸</string>
+    <string name="preference_preview_size_summary">设定预览界面尺寸</string>
+    <string name="preference_ui_placement">界面设定</string>
+    <string name="preference_ui_placement_summary">选择习惯左手/习惯右手的用户界面</string>
+    <string name="preference_show_zoom">显示缩放</string>
+    <string name="preference_show_zoom_summary">在屏幕上显示当前相机缩放等级（当放大时）</string>
+    <string name="preference_show_zoom_controls">显示 "-/+" 缩放控件</string>
+    <string name="preference_show_zoom_controls_summary">显示控制缩放的 "-/+" 按钮</string>
+    <string name="preference_show_zoom_slider_controls">显示滑动缩放控件</string>
+    <string name="preference_show_zoom_slider_controls_summary">显示用于缩放的滑动条</string>
+    <string name="preference_free_memory">显示可用存储空间</string>
+    <string name="preference_free_memory_summary">在屏幕上显示设备剩余存储空间</string>
+    <string name="preference_show_angle">显示倾斜角度</string>
+    <string name="preference_show_angle_summary">在屏幕上显示当前设备倾斜角度</string>
+    <string name="preference_show_angle_line">显示倾角校正线</string>
+    <string name="preference_show_angle_line_summary">在屏幕中央显示水平标记线</string>
+    <string name="preference_show_geo_direction">显示罗盘朝向</string>
+    <string name="preference_show_geo_direction_summary">在屏幕上显示电子罗盘指示方位</string>
+    <string name="preference_grid">显示网格线</string>
+    <string name="preference_grid_summary">显示某种网格线标记</string>
+    <string name="preference_crop_guide">显示剪裁参考线</string>
+    <string name="preference_crop_guide_summary">剪裁参考线是个长方形，用于显示所指定的剪裁宽高比的外观 -- 如果您打算对照片/视频进行剪裁。需要所见即所得（WYSIWYG）拍照模式，或录像模式。</string>
+    <string name="preference_thumbnail_animation">显示缩略图动画</string>
+    <string name="preference_thumbnail_animation_summary">拍照时显示移动的缩略图动画</string>
+    <string name="preference_max_brightness">强制屏幕最大亮度</string>
+    <string name="preference_max_brightness_summary">强制屏幕处于最亮状态，而不是设备默认亮度</string>
+    
+    <string name="preference_category_camera_quality">照片/视频设置</string>
+    <string name="preference_screen_camera_quality">照片/视频设置...</string>
+    <string name="preference_resolution">相机分辨率</string>
+    <string name="preference_resolution_summary">设定相机拍照分辨率</string>
+    <string name="preference_quality">图像质量</string>
+    <string name="preference_quality_summary">设定照片保存时的图像质量（建议值 90%%）</string>
+    <string name="preference_location">存储位置信息（地理标签）</string>
+    <string name="preference_location_summary">在照片/视频中存储 GPS 位置数据</string>
+    <string name="video_quality">视频分辨率</string>
+    <string name="video_quality_summary">设置视频分辨率</string>
+    <string name="preference_force_video_4k">强制 4K UHD 视频模式（实验性的）</string>
+    <string name="preference_force_video_4k_summary">启动后置摄像头 3840x2160 分辨率模式来录像 -- 您的设备必须支持此模式才能工作，否则程序可能崩溃！</string>
+    <string name="preference_video_stabilization">启动视频防抖动</string>
+    <string name="preference_video_stabilization_summary">视频防抖动，用来减少预览界面以及实际保存的视频中的抖动。</string>
+    <string name="preference_video_bitrate">视频码率（约数）</string>
+    <string name="preference_video_bitrate_summary">设置视频近似码率（数值越大，质量越好，但是占用空间越大；若设定的码率不支持，可能导致录像失败）</string>
+    <string name="preference_video_fps">视频帧率（约数）</string>
+    <string name="preference_video_fps_summary">设置视频帧率（FPS）（可能为近似值，不保证能达到，若设定的帧率不支持，可能导致录像失败）</string>
+    <string name="preference_video_max_duration">最大录制时间</string>
+    <string name="preference_video_max_duration_summary">视频录制会在指定持续时间之后停止</string>
+    <string name="preference_video_restart">最大录制时间过后重新开始录制</string>
+    <string name="preference_video_restart_summary">如果录像达到最大持续时间（若已设定），此选项将使录像重启，直到指定次数之后停止。</string>
+    <string name="preference_record_audio">录制音频</string>
+    <string name="preference_record_audio_summary">录像时同时记录音频</string>
+    <string name="preference_record_audio_src">音频源</string>
+    <string name="preference_record_audio_src_summary">记录音频所使用的麦克风</string>
+    <string name="preference_video_flash">拍摄视频时开启闪光灯</string>
+    <string name="preference_video_flash_summary">若开启，拍摄视频时闪光灯闪烁（可用于在远处确认相机仍在拍摄）。</string>
+    
+    <string name="preference_category_online">杂项</string>
+    <string name="preference_online_help">在线帮助</string>
+    
+    <string name="preference_donate">关于我</string>
+    <string name="preference_donate_summary">如有任何问题，请联系 <a href="mailto:zhangxaochen@163.com">zhangxaochen@163.com</a>\n个人主页：<a href="http://stackoverflow.com/users/1150712">zhangxaochen at StackOverflow</a></string>
+    
+    <string name="preference_about">关于</string>
+    <string name="preference_about_summary">应用 &amp; 调试信息</string>
+    <string name="about_ok">确定</string>
+    <string name="about_available">可用</string>
+    <string name="about_not_available">不可用</string>
+    <string name="about_copy_to_clipboard">复制到剪贴板</string>
+    
+    <string name="take_photo">拍照</string>
+    <string name="gallery">图库</string>
+    <string name="exposure">曝光</string>
+    <string name="exposure_lock">曝光锁定</string>
+    <string name="focus_mode">对焦模式</string>
+    <string name="flash_mode">闪光模式</string>
+    <string name="switch_camera">切换到相机</string>
+    <string name="switch_video">切换到录像</string>
+    <string name="trash">删除前一张照片</string>
+    <string name="share">分享照片</string>
+    <string name="iso">ISO</string>
+    
+    <string name="parent_folder">父目录</string>
+    <string name="use_folder">使用目录</string>
+    <string name="new_folder">新目录</string>
+    <string name="cant_write_folder">无法写入此目录</string>
+    <string name="cant_access_folder">无法访问此目录</string>
+    <string name="enter_new_folder">输入新的目录名</string>
+    <string name="failed_create_folder">创建目录失败</string>
+    <string name="folder_exists">目录已存在</string>
+    
+</resources>
