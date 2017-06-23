@@ -8,12 +8,22 @@
          blank area around the preview is black rather than white. Although this could be fixed by changing to a dark
          theme, this then looks undesirable for the MyPreferenceFragment, and unclear how to change a theme for a
          PreferenceFragment. -->
-
-    <FrameLayout
-        android:id="@+id/preview"
+    <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true" />
+        android:layout_height="wrap_content">
+
+        <FrameLayout
+            android:id="@+id/preview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true" />
+
+        <FrameLayout
+            android:id="@+id/preview2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true" />
+    </LinearLayout>
 
     <ImageButton
         android:id="@+id/take_photo"
@@ -43,8 +53,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:orientation="horizontal"
-        >
+        android:orientation="horizontal">
 
         <Space
             android:layout_width="wrap_content"
@@ -139,7 +148,6 @@
             android:scaleType="fitCenter"
             android:src="@drawable/settings" />
     </LinearLayout>
-
 
 
     <ImageButton

@@ -80,7 +80,7 @@
 	        android:summary="@string/preference_timer_summary"
 	        android:entries="@array/preference_timer_entries"
 	        android:entryValues="@array/preference_timer_values"
-	        android:defaultValue="0"
+	        android:defaultValue="1"
 	        />
 
         <CheckBoxPreference

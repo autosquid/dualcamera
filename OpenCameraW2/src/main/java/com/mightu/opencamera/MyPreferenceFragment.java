@@ -188,36 +188,6 @@ public class MyPreferenceFragment extends PreferenceFragment {
             });
         }
 
-        /*{
-        	EditTextPreference edit = (EditTextPreference)findPreference("preference_save_location");
-        	InputFilter filter = new InputFilter() { 
-        		// whilst Android seems to allow any characters on internal memory, SD cards are typically formatted with FAT32
-        		String disallowed = "|\\?*<\":>";
-                public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) { 
-                    for(int i=start;i<end;i++) { 
-                    	if( disallowed.indexOf( source.charAt(i) ) != -1 ) {
-                            return ""; 
-                    	}
-                    } 
-                    return null; 
-                }
-        	}; 
-        	edit.getEditText().setFilters(new InputFilter[]{filter});         	
-        }*/
-        {
-        	Preference pref = findPreference("preference_save_location");
-        	pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
-        		@Override
-                public boolean onPreferenceClick(Preference arg0) {
-            		if( MyDebug.LOG )
-            			Log.d(TAG, "clicked save location");
-            		FolderChooserDialog fragment = new FolderChooserDialog();
-            		fragment.show(getFragmentManager(), "FOLDER_FRAGMENT");
-                	return true;
-                }
-            });        	
-        }
-
         {
             final Preference pref = findPreference("preference_donate");
             pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {

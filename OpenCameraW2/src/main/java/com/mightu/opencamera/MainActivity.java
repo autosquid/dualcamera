@@ -1684,26 +1684,6 @@ public class MainActivity extends AppCompatActivity {
                             .show();
                     setWindowFlagsForCamera();
                 }
-                /*else if( which == new_index ) {
-                    if( MyDebug.LOG )
-						Log.d(TAG, "selected choose new folder");
-		    		FolderChooserDialog fragment = new FolderChooserDialog();
-		    		fragment.setStyle(DialogFragment.STYLE_NORMAL, theme);
-		    		fragment.show(getFragmentManager(), "FOLDER_FRAGMENT");
-					FragmentTransaction ft = getFragmentManager().beginTransaction();
-					//DialogFragment newFragment = MyDialogFragment.newInstance();
-					FolderChooserDialog fragment = new FolderChooserDialog();
-					ft.add(R.id.prefs_container, fragment);
-					ft.commit();
-		    		fragment.getDialog().setOnDismissListener(new DialogInterface.OnDismissListener() {
-						@Override
-						public void onDismiss(DialogInterface dialog) {
-							if( MyDebug.LOG )
-								Log.d(TAG, "FolderChooserDialog dismissed");
-							setWindowFlagsForCamera();
-						}
-;		    		});
-				}*/
                 else {
                     if (MyDebug.LOG)
                         Log.d(TAG, "selected: " + which);
