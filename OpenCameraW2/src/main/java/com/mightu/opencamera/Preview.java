@@ -24,12 +24,10 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.media.CamcorderProfile;
 import android.media.ExifInterface;
-import android.media.MediaMetadataRetriever;
 import android.media.MediaRecorder;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -615,57 +613,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
                     // need to scan when finished, so we update for the completed file
                     main_activity.broadcastFile(file, false, true);
                 }
-                // create thumbnail
-                {
-                    long time_s = System.currentTimeMillis();
-                    Bitmap old_thumbnail = thumbnail;
-                    MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-                    try {
-                        retriever.setDataSource(video_name);
-                        thumbnail = retriever.getFrameAtTime(-1);
-                    } catch (IllegalArgumentException ex) {
-                        // corrupt video file?
-                    } catch (RuntimeException ex) {
-                        // corrupt video file?
-                    } finally {
-                        try {
-                            retriever.release();
-                        } catch (RuntimeException ex) {
-                            // ignore
-                        }
-                    }
-                    if (thumbnail != null && thumbnail != old_thumbnail) {
-                        ImageButton galleryButton = (ImageButton) main_activity.findViewById(R.id.gallery);
-                        int width = thumbnail.getWidth();
-                        int height = thumbnail.getHeight();
-                        if (MyDebug.LOG)
-                            Log.d(TAG, "    video thumbnail size " + width + " x " + height);
-                        if (width > galleryButton.getWidth()) {
-                            float scale = (float) galleryButton.getWidth() / width;
-                            int new_width = Math.round(scale * width);
-                            int new_height = Math.round(scale * height);
-                            if (MyDebug.LOG)
-                                Log.d(TAG, "    scale video thumbnail to " + new_width + " x " + new_height);
-                            Bitmap scaled_thumbnail = Bitmap.createScaledBitmap(thumbnail, new_width, new_height, true);
-                            // careful, as scaled_thumbnail is sometimes not a copy!
-                            if (scaled_thumbnail != thumbnail) {
-                                thumbnail.recycle();
-                                thumbnail = scaled_thumbnail;
-                            }
-                        }
-                        main_activity.runOnUiThread(new Runnable() {
-                            public void run() {
-                                main_activity.updateGalleryIconToBitmap(thumbnail);
-                            }
-                        });
-                        if (old_thumbnail != null) {
-                            // only recycle after we've set the new thumbnail
-                            old_thumbnail.recycle();
-                        }
-                    }
-                    if (MyDebug.LOG)
-                        Log.d(TAG, "    time to create thumbnail: " + (System.currentTimeMillis() - time_s));
-                }
+
                 video_name = null;
             }
         }
@@ -906,9 +854,6 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
             if (MyDebug.LOG) {
                 //Log.d(TAG, "time after setting preview display: " + (System.currentTimeMillis() - debug_time));
             }
-
-            View switchCameraButton = (View) activity.findViewById(R.id.switch_camera);
-            switchCameraButton.setVisibility(Camera.getNumberOfCameras() > 1 ? View.VISIBLE : View.GONE);
 
             setupCamera(toast_message);
         }
@@ -1566,7 +1511,8 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
         if (MyDebug.LOG)
             Log.d(TAG, "surfaceChanged " + w + ", " + h);
-        // surface size is now changed to match the aspect ratio of camera preview - so we shouldn't change the preview to match the surface size, so no need to restart preview here
+        // surface size is now changed to match the aspect ratio of camera preview
+        // - so we shouldn't change the preview to match the surface size, so no need to restart preview here
 
         if (mHolder.getSurface() == null) {
             // preview surface does not exist
@@ -2032,7 +1978,15 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
                 Log.d(TAG, "display_size: " + display_size.x + " x " + display_size.y);
         }
         double targetRatio = getTargetRatioForPreview(display_size);
+
+        if (false) {
+            int split_target_width = Math.max(display_size.x, display_size.y) / 2;
+            int split_target_height = (int) ((double) split_target_width / targetRatio);
+        }
+
         int targetHeight = Math.min(display_size.y, display_size.x);
+
+      //  int targetHeight = split_target_height;
         if (targetHeight <= 0) {
             targetHeight = display_size.y;
         }
@@ -2088,6 +2042,39 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
         if (MyDebug.LOG) {
             Log.d(TAG, "chose optimalSize: " + optimalSize.width + " x " + optimalSize.height);
             Log.d(TAG, "optimalSize ratio: " + ((double) optimalSize.width / optimalSize.height));
+        }
+        return optimalSize;
+    }
+
+
+    private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
+        final double ASPECT_TOLERANCE = 0.1;
+        double targetRatio=(double)h / w;
+
+        if (sizes == null) return null;
+
+        Camera.Size optimalSize = null;
+        double minDiff = Double.MAX_VALUE;
+
+        int targetHeight = h;
+
+        for (Camera.Size size : sizes) {
+            double ratio = (double) size.width / size.height;
+            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
+            if (Math.abs(size.height - targetHeight) < minDiff) {
+                optimalSize = size;
+                minDiff = Math.abs(size.height - targetHeight);
+            }
+        }
+
+        if (optimalSize == null) {
+            minDiff = Double.MAX_VALUE;
+            for (Camera.Size size : sizes) {
+                if (Math.abs(size.height - targetHeight) < minDiff) {
+                    optimalSize = size;
+                    minDiff = Math.abs(size.height - targetHeight);
+                }
+            }
         }
         return optimalSize;
     }
@@ -2377,51 +2364,6 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         // note, no need to check preferences here, as we do that when setting thumbnail_anim
-        if (camera != null && this.thumbnail_anim && this.thumbnail != null) {
-            long time = System.currentTimeMillis() - this.thumbnail_anim_start_ms;
-            final long duration = 500;
-            if (time > duration) {
-                this.thumbnail_anim = false;
-            } else {
-                thumbnail_anim_src_rect.left = 0;
-                thumbnail_anim_src_rect.top = 0;
-                thumbnail_anim_src_rect.right = this.thumbnail.getWidth();
-                thumbnail_anim_src_rect.bottom = this.thumbnail.getHeight();
-                View galleryButton = (View) main_activity.findViewById(R.id.gallery);
-                float alpha = ((float) time) / (float) duration;
-
-                int st_x = canvas.getWidth() / 2;
-                int st_y = canvas.getHeight() / 2;
-                int nd_x = galleryButton.getLeft() + galleryButton.getWidth() / 2;
-                int nd_y = galleryButton.getTop() + galleryButton.getHeight() / 2;
-                int thumbnail_x = (int) ((1.0f - alpha) * st_x + alpha * nd_x);
-                int thumbnail_y = (int) ((1.0f - alpha) * st_y + alpha * nd_y);
-
-                float st_w = canvas.getWidth();
-                float st_h = canvas.getHeight();
-                float nd_w = galleryButton.getWidth();
-                float nd_h = galleryButton.getHeight();
-                //int thumbnail_w = (int)( (1.0f-alpha)*st_w + alpha*nd_w );
-                //int thumbnail_h = (int)( (1.0f-alpha)*st_h + alpha*nd_h );
-                float correction_w = st_w / nd_w - 1.0f;
-                float correction_h = st_h / nd_h - 1.0f;
-                int thumbnail_w = (int) (st_w / (1.0f + alpha * correction_w));
-                int thumbnail_h = (int) (st_h / (1.0f + alpha * correction_h));
-                thumbnail_anim_dst_rect.left = thumbnail_x - thumbnail_w / 2;
-                thumbnail_anim_dst_rect.top = thumbnail_y - thumbnail_h / 2;
-                thumbnail_anim_dst_rect.right = thumbnail_x + thumbnail_w / 2;
-                thumbnail_anim_dst_rect.bottom = thumbnail_y + thumbnail_h / 2;
-                //canvas.drawBitmap(this.thumbnail, thumbnail_anim_src_rect, thumbnail_anim_dst_rect, p);
-                thumbnail_anim_matrix.setRectToRect(thumbnail_anim_src_rect, thumbnail_anim_dst_rect, Matrix.ScaleToFit.FILL);
-                //thumbnail_anim_matrix.reset();
-                if (ui_rotation == 90 || ui_rotation == 270) {
-                    float ratio = ((float) thumbnail.getWidth()) / (float) thumbnail.getHeight();
-                    thumbnail_anim_matrix.preScale(ratio, 1.0f / ratio, thumbnail.getWidth() / 2, thumbnail.getHeight() / 2);
-                }
-                thumbnail_anim_matrix.preRotate(ui_rotation, thumbnail.getWidth() / 2, thumbnail.getHeight() / 2);
-                canvas.drawBitmap(this.thumbnail, thumbnail_anim_matrix, p);
-            }
-        }
 
         canvas.save();
         canvas.rotate(ui_rotation, canvas.getWidth() / 2, canvas.getHeight() / 2);
@@ -2971,36 +2913,36 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
         return 2 - current_idx;
     }
 
-    void switchCamera() {
-        if (MyDebug.LOG)
-            Log.d(TAG, "switchCamera()");
-        //if( is_taking_photo && !is_taking_photo_on_timer ) {
-        if (this.phase == PHASE_TAKING_PHOTO) {
-            // just to be safe - risk of cancelling the autofocus before taking a photo, or otherwise messing things up
-            if (MyDebug.LOG)
-                Log.d(TAG, "currently taking a photo");
-            return;
-        }
-        int n_cameras = Camera.getNumberOfCameras();
-        if (MyDebug.LOG)
-            Log.d(TAG, "found " + n_cameras + " cameras");
-        if (n_cameras > 1) {
-            closeCamera();
-            cameraId = nextRearCamera(cameraId);
-            Camera.CameraInfo info = new Camera.CameraInfo();
-            Camera.getCameraInfo(cameraId, info);
-            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                showToast(switch_camera_toast, R.string.front_camera);
-            } else {
-                showToast(switch_camera_toast, R.string.back_camera);
-            }
-            //zoom_factor = 0; // reset zoom when switching camera
-            this.openCamera();
-
-            // we update the focus, in case we weren't able to do it when switching video with a camera that didn't support focus modes
-            updateFocusForVideo(true);
-        }
-    }
+//    void switchCamera() {
+//        if (MyDebug.LOG)
+//            Log.d(TAG, "switchCamera()");
+//        //if( is_taking_photo && !is_taking_photo_on_timer ) {
+//        if (this.phase == PHASE_TAKING_PHOTO) {
+//            // just to be safe - risk of cancelling the autofocus before taking a photo, or otherwise messing things up
+//            if (MyDebug.LOG)
+//                Log.d(TAG, "currently taking a photo");
+//            return;
+//        }
+//        int n_cameras = Camera.getNumberOfCameras();
+//        if (MyDebug.LOG)
+//            Log.d(TAG, "found " + n_cameras + " cameras");
+//        if (n_cameras > 1) {
+//            closeCamera();
+//            cameraId = nextRearCamera(cameraId);
+//            Camera.CameraInfo info = new Camera.CameraInfo();
+//            Camera.getCameraInfo(cameraId, info);
+//            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+//                showToast(switch_camera_toast, R.string.front_camera);
+//            } else {
+//                showToast(switch_camera_toast, R.string.back_camera);
+//            }
+//            //zoom_factor = 0; // reset zoom when switching camera
+//            this.openCamera();
+//
+//            // we update the focus, in case we weren't able to do it when switching video with a camera that didn't support focus modes
+//            updateFocusForVideo(true);
+//        }
+//    }
 
     private void showPhotoVideoToast() {
         MainActivity main_activity = (MainActivity) Preview.this.getContext();
@@ -4634,89 +4576,6 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
                     bitmap = null;
                 }
 
-                if (success && picFile != null) {
-                    // update thumbnail - this should be done after restarting preview, so that the preview is started asap
-                    long time_s = System.currentTimeMillis();
-                    Camera.Parameters parameters = cam.getParameters();
-                    Camera.Size size = parameters.getPictureSize();
-                    int ratio = (int) Math.ceil((double) size.width / Preview.this.getWidth());
-                    BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inMutable = false;
-                    options.inPurgeable = true;
-                    options.inSampleSize = Integer.highestOneBit(ratio) * 4; // * 4 to increase performance, without noticeable loss in visual quality
-                    if (!sharedPreferences.getBoolean("preference_thumbnail_animation", true)) {
-                        // can use lower resolution if we don't have the thumbnail animation
-                        options.inSampleSize *= 4;
-                    }
-                    if (MyDebug.LOG) {
-                        Log.d(TAG, "    picture width   : " + size.width);
-                        Log.d(TAG, "    preview width   : " + Preview.this.getWidth());
-                        Log.d(TAG, "    ratio           : " + ratio);
-                        Log.d(TAG, "    inSampleSize    : " + options.inSampleSize);
-                    }
-                    Bitmap old_thumbnail = thumbnail;
-                    thumbnail = BitmapFactory.decodeByteArray(data, 0, data.length, options);
-                    int thumbnail_rotation = 0;
-                    // now get the rotation from the Exif data
-                    try {
-                        if (exif_orientation_s == null) {
-                            // haven't already read the exif orientation
-                            if (MyDebug.LOG)
-                                Log.d(TAG, "    read exif orientation");
-                            ExifInterface exif = new ExifInterface(picFile.getAbsolutePath());
-                            exif_orientation_s = exif.getAttribute(ExifInterface.TAG_ORIENTATION);
-                        }
-                        if (MyDebug.LOG)
-                            Log.d(TAG, "    exif orientation string: " + exif_orientation_s);
-                        int exif_orientation = 0;
-                        // from http://jpegclub.org/exif_orientation.html
-                        if (exif_orientation_s.equals("0") || exif_orientation_s.equals("1")) {
-                            // leave at 0
-                        } else if (exif_orientation_s.equals("3")) {
-                            exif_orientation = 180;
-                        } else if (exif_orientation_s.equals("6")) {
-                            exif_orientation = 90;
-                        } else if (exif_orientation_s.equals("8")) {
-                            exif_orientation = 270;
-                        } else {
-                            // just leave at 0
-                            if (MyDebug.LOG)
-                                Log.e(TAG, "    unsupported exif orientation: " + exif_orientation_s);
-                        }
-                        if (MyDebug.LOG)
-                            Log.d(TAG, "    exif orientation: " + exif_orientation);
-                        thumbnail_rotation = (thumbnail_rotation + exif_orientation) % 360;
-                    } catch (IOException exception) {
-                        if (MyDebug.LOG)
-                            Log.e(TAG, "exif orientation ioexception");
-                        exception.printStackTrace();
-                    }
-                    if (MyDebug.LOG)
-                        Log.d(TAG, "    thumbnail orientation: " + thumbnail_rotation);
-
-                    if (thumbnail_rotation != 0) {
-                        Matrix m = new Matrix();
-                        m.setRotate(thumbnail_rotation, thumbnail.getWidth() * 0.5f, thumbnail.getHeight() * 0.5f);
-                        Bitmap rotated_thumbnail = Bitmap.createBitmap(thumbnail, 0, 0, thumbnail.getWidth(), thumbnail.getHeight(), m, true);
-                        if (rotated_thumbnail != thumbnail) {
-                            thumbnail.recycle();
-                            thumbnail = rotated_thumbnail;
-                        }
-                    }
-
-                    if (sharedPreferences.getBoolean("preference_thumbnail_animation", true)) {
-                        thumbnail_anim = true;
-                        thumbnail_anim_start_ms = System.currentTimeMillis();
-                    }
-                    main_activity.updateGalleryIconToBitmap(thumbnail);
-                    if (old_thumbnail != null) {
-                        // only recycle after we've set the new thumbnail
-                        old_thumbnail.recycle();
-                    }
-                    if (MyDebug.LOG)
-                        Log.d(TAG, "    time to create thumbnail: " + (System.currentTimeMillis() - time_s));
-                }
-
                 System.gc();
 
                 if (remaining_burst_photos > 0) {
@@ -5088,14 +4947,9 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
         main_activity.runOnUiThread(new Runnable() {
             public void run() {
                 final int visibility = show ? View.VISIBLE : View.GONE;
-                View switchCameraButton = (View) main_activity.findViewById(R.id.switch_camera);
-//                View switchVideoButton = (View) main_activity.findViewById(R.id.switch_video);
                 View exposureButton = (View) main_activity.findViewById(R.id.exposure);
                 View exposureLockButton = (View) main_activity.findViewById(R.id.exposure_lock);
                 View popupButton = (View) main_activity.findViewById(R.id.popup);
-                if (Camera.getNumberOfCameras() > 1)
-                    switchCameraButton.setVisibility(visibility);
-//                if (!is_video)                    switchVideoButton.setVisibility(visibility); // still allow switch video when recording video
                 if (exposures != null && !is_video) // still allow exposure when recording video
                     exposureButton.setVisibility(visibility);
                 if (is_exposure_locked_supported && !is_video) // still allow exposure lock when recording video
@@ -5632,162 +5486,3 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 
 }//Preview
 
-/**
- * 异步写xml文件
- */
-class WriteDataXmlTask extends AsyncTask<Void, Void, Void> {
-    XmlRootNode _xmlRootNode;
-    File _file;
-    Persister _persister;
-
-    public WriteDataXmlTask() {
-    }
-
-    public WriteDataXmlTask setXmlRootNode(XmlRootNode rootNode) {
-        _xmlRootNode = rootNode;
-        return this;
-    }
-
-    public WriteDataXmlTask setFile(File file) {
-        _file = file;
-        return this;
-    }
-
-    public WriteDataXmlTask setPersister(Persister persister) {
-        _persister = persister;
-        return this;
-    }
-
-    @Override
-    protected Void doInBackground(Void... params) {
-        System.out.println("doInBackground()");
-        if (_xmlRootNode == null || _file == null || _persister == null) {
-            System.out.println("_xmlRootNode==null || _file==null || _persister == null");
-            return null;
-        }
-
-        try {
-            //          _persister.write(_captureSessionNode, _file);
-            _persister.write(_xmlRootNode, _file);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    @Override
-    protected void onPostExecute(Void result) {
-        System.out.println("onPostExecute");
-        super.onPostExecute(result);
-
-        //      _captureSessionNode.clearAllNodes();
-        _xmlRootNode.clear();
-
-    }
-
-}//WriteDataXmlTask
-
-class WriteConfXmlTask extends AsyncTask<Void, Void, Void> {
-    private static final String TAG = "WriteConfXmlTask";
-    //	private String a;
-    MainActivity _mainActivity = null;
-    Persister _persister = null;
-    File _confFile = null;
-    String _dataXmlFname = null;
-
-
-    //	public WriteConfXmlTask() {
-//	}//WriteConfXmlTask
-    WriteConfXmlTask(Context ctx, Persister p, File confFile, String dataXmlFname) {
-        super();
-        _mainActivity = (MainActivity) ctx;
-        _persister = p;
-        _confFile = confFile;
-        _dataXmlFname = dataXmlFname;
-    }//WriteConfXmlTask
-
-    @Override
-    protected Void doInBackground(Void... params) {
-        System.out.println("WriteConfXmlTask.doInBackground()");
-
-        CollectionProjXml confXmlNode = new CollectionProjXml();
-
-        try {
-            // 如果先前创建过此工程， 读旧的：
-            if (_confFile.exists()) {
-                try {
-                    confXmlNode = _persister.read(CollectionProjXml.class,
-                            _confFile);
-                } catch (Exception e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-            }
-            String projName = _confFile.getName();
-            confXmlNode.setProjName(projName);
-            confXmlNode.setProjDescription("deprecated entry");
-            confXmlNode.collectionCntPlusOne();
-            Log.i(TAG,
-                    "projName: " + projName + "," + confXmlNode.getProjName()
-                            + "," + confXmlNode.getCollectionCnt() + ","
-                            + _mainActivity._picNames.size());
-            CollectionNode cNode = new CollectionNode();
-            cNode.setSensorName(_dataXmlFname);
-            cNode.addPicNodes(_mainActivity._picNames,
-                    _mainActivity._picTimestamps);
-
-            confXmlNode.getCollectionsNode().collectionList.add(cNode);
-
-            _persister.write(confXmlNode, _confFile);
-
-            //清空 _picNames, _picTimestamps, 防止影响下次采集：
-            _mainActivity._picNames.clear();
-            _mainActivity._picTimestamps.clear();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-}//WriteConfXmlTask
-
-/**
- * 异步写普通数据文件
- */
-class WriteFoutTask extends AsyncTask<Void, Void, Void> {
-    FileOutputStream fout;
-    byte[] data;
-
-    @Override
-    protected Void doInBackground(Void... params) {
-        try {
-            fout.write(data);
-            fout.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public FileOutputStream getFout() {
-        return fout;
-    }
-
-    public WriteFoutTask setFout(FileOutputStream fout) {
-        this.fout = fout;
-        return this;
-    }
-
-    public byte[] getData() {
-        return data;
-    }
-
-    public WriteFoutTask setData(byte[] data) {
-        this.data = data;
-        return this;
-    }
-}//WriteFoutTask

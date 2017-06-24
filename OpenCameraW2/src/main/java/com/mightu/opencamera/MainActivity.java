@@ -2,15 +2,11 @@ package com.mightu.opencamera;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
-import android.content.ActivityNotFoundException;
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -20,7 +16,6 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -34,8 +29,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.ParcelFileDescriptor;
 import android.os.StatFs;
 import android.os.StrictMode;
 import android.os.SystemClock;
@@ -47,7 +40,6 @@ import android.provider.MediaStore.Video.VideoColumns;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
-import android.telephony.gsm.GsmCellLocation;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -69,17 +61,16 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.Toast;
-import android.widget.ZoomControls;
 
 import com.mightu.opencamera.CameraController.CameraControllerManager;
-import com.mightu.opencamera.CameraController.CameraControllerManager2;
+import com.mightu.opencamera.XMLTasks.WriteConfXmlTask;
+import com.mightu.opencamera.XMLTasks.WriteDataXmlTask;
 
 import org.simpleframework.xml.core.Persister;
 import org.simpleframework.xml.stream.Format;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -87,20 +78,19 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MainActivity";
-    private static final int MY_PERMISSION_SEND_MSG_REQUEST_CODE = 88;
+    static final String TAG = "MainActivity";
+    static final int MY_PERMISSION_SEND_MSG_REQUEST_CODE = 88;
     private SensorManager mSensorManager = null;
     private Sensor mSensorAccelerometer = null;
     private Sensor mSensorMagnetic = null;
     private LocationManager mLocationManager = null;
     private LocationListener locationListener = null;
-    private Preview preview = null;
+    private DoublePreviewController preview = null;
     private int current_orientation = 0;
     private OrientationEventListener orientationEventListener = null;
-    private boolean supports_auto_stabilise = false;
-    private boolean supports_force_video_4k = false;
+    boolean supports_auto_stabilise = false;
+    boolean supports_force_video_4k = false;
     private ArrayList<String> save_location_history = new ArrayList<String>();
     private boolean camera_in_background = false; // whether the camera is covered by a fragment/dialog (such as settings or folder picker)
     private GestureDetector gestureDetector;
@@ -118,8 +108,8 @@ public class MainActivity extends AppCompatActivity {
     boolean _savePicFinished = false;
 
     //{照片名, 时间戳} pair
-    List<String> _picNames = new ArrayList<String>();
-    List<Double> _picTimestamps = new ArrayList<Double>();
+    public List<String> _picNames = new ArrayList<String>();
+    public List<Double> _picTimestamps = new ArrayList<Double>();
     MySensorListener _listener = new MySensorListener();
     NewSessionNode _newSessionNode = new NewSessionNode();
 
@@ -129,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
     // for testing:
     public boolean is_test = false;
     public Bitmap gallery_bitmap = null;
-    private boolean supports_camera2 = false;
+    boolean supports_camera2 = false;
     private int ncam;
 
     //2015-4-14 23:02:36
@@ -137,29 +127,8 @@ public class MainActivity extends AppCompatActivity {
     Persister _persister = new Persister(new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
 
     final String _projXmlName = "collection-proj.xml";
-
     final String _dataXmlPrefix = "sensor";
     final String _dataXmlExt = "xml";
-
-
-    private void setupPermissions() {
-        String[] permissionsWeNeed = new String[]{
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.CAMERA,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.RECORD_AUDIO};
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            for (String permission : permissionsWeNeed) {
-                if (ActivityCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(permissionsWeNeed, MY_PERMISSION_SEND_MSG_REQUEST_CODE);
-                    break;
-                }
-            }
-        }
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
@@ -257,54 +226,19 @@ public class MainActivity extends AppCompatActivity {
         this._listener.reset();
     }//stopCaptureSensor
 
-    private void initCamera2Support() {
-        if (MyDebug.LOG)
-            Log.d(TAG, "initCamera2Support");
-        supports_camera2 = false;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            CameraControllerManager2 manager2 = new CameraControllerManager2(this);
-            supports_camera2 = true;
-            if (manager2.getNumberOfCameras() == 0) {
-                if (MyDebug.LOG)
-                    Log.d(TAG, "Camera2 reports 0 cameras");
-                supports_camera2 = false;
-            }
-            for (int i = 0; i < manager2.getNumberOfCameras() && supports_camera2; i++) {
-                if (!manager2.allowCamera2Support(i)) {
-                    if (MyDebug.LOG)
-                        Log.d(TAG, "camera " + i + " doesn't have limited or full support for Camera2 API");
-                    supports_camera2 = false;
-                }
-            }
-        }
-        if (MyDebug.LOG)
-            Log.d(TAG, "supports_camera2? " + supports_camera2);
-    }
 
-    CameraControllerManager camera_cotroller_manager = null;
-    ArrayList<Integer> rear_camera_ids;
+    CameraControllerManager camera_controller_manager = null;
 
-    void setupCamera() {
-        ncam = camera_cotroller_manager.getNumberOfCameras();
-        rear_camera_ids = new ArrayList<Integer>();
-        for (int camid = 0; camid < ncam; ++camid) {
-            if (camera_cotroller_manager.isFrontFacing(camid)) {
-            } else {
-                rear_camera_ids.add(camid);
-            }
-        }
-    }
-
+    MainActivityHelper helper = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setupPermissions();
+        helper = new MainActivityHelper(this);
+        helper.setupPermissions();
 
-        if (MyDebug.LOG) {
-            Log.d(TAG, "onCreate");
-        }
         long time_s = System.currentTimeMillis();
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 
@@ -313,9 +247,10 @@ public class MainActivity extends AppCompatActivity {
             if (MyDebug.LOG)
                 Log.d(TAG, "is_test: " + is_test);
         }
+
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        inspect();
+        helper.inspect();
 
         setWindowFlagsForCamera();
 
@@ -349,11 +284,19 @@ public class MainActivity extends AppCompatActivity {
 
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        updateGalleryIcon();
         clearSeekBar();
 
-        preview = new Preview(this, savedInstanceState);
-        ((ViewGroup) findViewById(R.id.preview)).addView(preview);
+        Preview p1 = new Preview(this, savedInstanceState);
+        ((ViewGroup) findViewById(R.id.preview)).addView(p1);
+
+        Preview p2 = new Preview(this, savedInstanceState);;
+        ((ViewGroup) findViewById(R.id.preview2)).addView(p2);
+
+
+        preview = new DoublePreviewController(p1, p2);
+
+        preview.prepare();
+        preview.setupCamera(null);
 
         orientationEventListener = new OrientationEventListener(this) {
             @Override
@@ -362,15 +305,6 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        View galleryButton = (View) findViewById(R.id.gallery);
-        galleryButton.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                preview.showToast(null, "Long click");
-                longClickedGallery();
-                return true;
-            }
-        });
 
         gestureDetector = new GestureDetector(this, new MyGestureDetector());
 
@@ -391,31 +325,6 @@ public class MainActivity extends AppCompatActivity {
         preloadIcons(R.array.flash_icons);
         preloadIcons(R.array.focus_mode_icons);
 
-        //2015-4-13 22:39:21， zhangxaochen
-        _tManager = (TelephonyManager) this.getSystemService(Context.TELEPHONY_SERVICE);
-        boolean hasIccCard = _tManager.hasIccCard();
-        System.out.println("_tManager.hasIccCard(): " + hasIccCard);
-        if (hasIccCard) {
-            _listener.setTelephonyManager(_tManager);
-
-            System.out.println("---------------_tManager: " + _tManager);
-            GsmCellLocation location = (GsmCellLocation) _tManager.getCellLocation();
-            System.out.println("---------------location: " + location);
-            int cid = location.getCid();
-            System.out.println("---------------cid: " + cid);
-        } else {
-            Builder builder = new Builder(this);
-            builder.setTitle("未插入SIM卡")
-                    .setMessage("hasIccCard==false, 点击“继续”以采集IMU数据；点击“退出”退出程序。")
-                    .setPositiveButton("继续", null)
-                    .setNegativeButton("退出", new OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            System.exit(-1);
-                        }
-                    });
-        }
-
         // this is to overcome file share problem
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
@@ -424,31 +333,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "time for Activity startup: " + (System.currentTimeMillis() - time_s));
     }
 
-    private void inspect() {
-        initCamera2Support();
 
-        Toast.makeText(this, "camera 2 supported?" + String.valueOf(supports_camera2), Toast.LENGTH_LONG);
-
-        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        if (MyDebug.LOG) {
-            Log.d(TAG, "standard max memory = " + activityManager.getMemoryClass() + "MB");
-            Log.d(TAG, "large max memory = " + activityManager.getLargeMemoryClass() + "MB");
-        }
-        if (activityManager.getLargeMemoryClass() >= 128) {
-            supports_auto_stabilise = true;
-        }
-        if (MyDebug.LOG)
-            Log.d(TAG, "supports_auto_stabilise? " + supports_auto_stabilise);
-
-        // hack to rule out phones unlikely to have 4K video, so no point even offering the option!
-        // both S5 and Note 3 have 128MB standard and 512MB large heap (tested via Samsung RTL), as does Galaxy K Zoom
-        // also added the check for having 128MB standard heap, to support modded LG G2, which has 128MB standard, 256MB large - see https://sourceforge.net/p/opencamera/tickets/9/
-        if (activityManager.getMemoryClass() >= 128 || activityManager.getLargeMemoryClass() >= 512) {
-            supports_force_video_4k = true;
-        }
-        if (MyDebug.LOG)
-            Log.d(TAG, "supports_force_video_4k? " + supports_force_video_4k);
-    }
 
     private void preloadIcons(int icons_id) {
         long time_s = System.currentTimeMillis();
@@ -511,10 +396,10 @@ public class MainActivity extends AppCompatActivity {
                         this.preview.zoomOut();
                     return true;
                 } else if (volume_keys.equals("volume_exposure")) {
-                    if (keyCode == KeyEvent.KEYCODE_VOLUME_UP)
-                        this.preview.changeExposure(1, true);
-                    else
-                        this.preview.changeExposure(-1, true);
+//                    if (keyCode == KeyEvent.KEYCODE_VOLUME_UP)
+//                        this.preview.changeExposure(1, true);
+//                    else
+//                        this.preview.changeExposure(-1, true);
                     return true;
                 } else if (volume_keys.equals("volume_auto_stabilise")) {
                     if (this.supports_auto_stabilise) {
@@ -651,8 +536,6 @@ public class MainActivity extends AppCompatActivity {
 
         layoutUI();
 
-        updateGalleryIcon(); // update in case images deleted whilst idle
-
         preview.onResume();
 
         //zhangxaochen:
@@ -715,11 +598,6 @@ public class MainActivity extends AppCompatActivity {
         // relative_orientation is clockwise from landscape-left
         //int relative_orientation = (current_orientation + 360 - degrees) % 360;
         int relative_orientation = (current_orientation + degrees) % 360;
-        if (MyDebug.LOG) {
-            Log.d(TAG, "    current_orientation = " + current_orientation);
-            Log.d(TAG, "    degrees = " + degrees);
-            Log.d(TAG, "    relative_orientation = " + relative_orientation);
-        }
         int ui_rotation = (360 - relative_orientation) % 360;
         preview.setUIRotation(ui_rotation);
         int align_left = RelativeLayout.ALIGN_LEFT;
@@ -746,9 +624,6 @@ public class MainActivity extends AppCompatActivity {
             View view = findViewById(R.id.settings);
             view.setRotation(ui_rotation);
 
-            view = findViewById(R.id.gallery);
-            view.setRotation(ui_rotation);
-
             view = findViewById(R.id.popup);
             view.setRotation(ui_rotation);
 
@@ -756,9 +631,6 @@ public class MainActivity extends AppCompatActivity {
             view.setRotation(ui_rotation);
 
             view = findViewById(R.id.exposure);
-            view.setRotation(ui_rotation);
-
-            view = findViewById(R.id.switch_camera);
             view.setRotation(ui_rotation);
 
             view = findViewById(R.id.bt_new_save);
@@ -777,15 +649,6 @@ public class MainActivity extends AppCompatActivity {
             view.setRotation(ui_rotation);
 
             //------------------------------
-
-            view = findViewById(R.id.trash);
-            layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
-            layoutParams.addRule(align_parent_top, RelativeLayout.TRUE);
-            layoutParams.addRule(align_parent_bottom, 0);
-            layoutParams.addRule(left_of, R.id.switch_camera);
-            layoutParams.addRule(right_of, 0);
-            view.setLayoutParams(layoutParams);
-            view.setRotation(ui_rotation);
 
             view = findViewById(R.id.share);
             layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
@@ -819,45 +682,6 @@ public class MainActivity extends AppCompatActivity {
             layoutParams.addRule(above, R.id.zoom);
             layoutParams.addRule(below, 0);
             view.setLayoutParams(layoutParams);
-        }
-
-        {
-            // set seekbar info
-            View view = findViewById(R.id.seekbar);
-            view.setRotation(ui_rotation);
-
-            int width_dp = 0;
-            if (ui_rotation == 0 || ui_rotation == 180) {
-                width_dp = 300;
-            } else {
-                width_dp = 200;
-            }
-            int height_dp = 50;
-            final float scale = getResources().getDisplayMetrics().density;
-            int width_pixels = (int) (width_dp * scale + 0.5f); // convert dps to pixels
-            int height_pixels = (int) (height_dp * scale + 0.5f); // convert dps to pixels
-            RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) view.getLayoutParams();
-            lp.width = width_pixels;
-            lp.height = height_pixels;
-            view.setLayoutParams(lp);
-
-            view = findViewById(R.id.seekbar_zoom);
-            view.setRotation(ui_rotation);
-            view.setAlpha(0.5f);
-            // n.b., using left_of etc doesn't work properly when using rotation (as the amount of space reserved is based on the UI elements before being rotated)
-            if (ui_rotation == 0) {
-                view.setTranslationX(0);
-                view.setTranslationY(height_pixels);
-            } else if (ui_rotation == 90) {
-                view.setTranslationX(-height_pixels);
-                view.setTranslationY(0);
-            } else if (ui_rotation == 180) {
-                view.setTranslationX(0);
-                view.setTranslationY(-height_pixels);
-            } else if (ui_rotation == 270) {
-                view.setTranslationX(height_pixels);
-                view.setTranslationY(0);
-            }
         }
 
         {
@@ -950,18 +774,8 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "which should take Picture" + String.valueOf(cameraSwitchingTo));
         closePopup();
 
-        // camera id == 0
-        Log.d(TAG, "---------");
-        Log.d(TAG, "Before Taking A Picture, which camera is this? " + String.valueOf(this.preview.getCameraId()));
-
         this.preview.takePicturePressed();
-        Log.d(TAG, "which camera is this? " + String.valueOf(this.preview.getCameraId()));
-        SystemClock.sleep(10000);
 
-//        preview.onPause();
-//        preview.setCameraId(2 - cameraSwitchingTo);
-        preview.switchToCamera(2 - cameraSwitchingTo);
-//        preview.onResume();
         Log.d(TAG, "After Switch, which camera is this? " + String.valueOf(this.preview.getCameraId()));
         Log.d(TAG, "===================");
     }
@@ -975,16 +789,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void clickedTakePhoto(View view) {
-        preview.switchToCamera(currentCamID);
         preview.takePicturePressed();
-        currentCamID = 2 - currentCamID;
-    }
-
-    public void clickedSwitchCamera(View view) {
-        if (MyDebug.LOG)
-            Log.d(TAG, "clickedSwitchCamera");
-        this.closePopup();
-        this.preview.switchCamera();
     }
 
     //zhangxaochen:
@@ -1076,10 +881,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void setSeekBarExposure() {
-        SeekBar seek_bar = ((SeekBar) findViewById(R.id.seekbar));
-        final int min_exposure = preview.getMinimumExposure();
-        seek_bar.setMax(preview.getMaximumExposure() - min_exposure);
-        seek_bar.setProgress(preview.getCurrentExposure() - min_exposure);
+//        SeekBar seek_bar = ((SeekBar) findViewById(R.id.seekbar));
+//        final int min_exposure = preview.getMinimumExposure();
+//        seek_bar.setMax(preview.getMaximumExposure() - min_exposure);
+//        seek_bar.setProgress(preview.getCurrentExposure() - min_exposure);
     }
 
     public void clickedExposure(View view) {
@@ -1107,19 +912,6 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onStopTrackingTouch(SeekBar seekBar) {
-                }
-            });
-
-            ZoomControls seek_bar_zoom = (ZoomControls) findViewById(R.id.seekbar_zoom);
-            seek_bar_zoom.setVisibility(View.VISIBLE);
-            seek_bar_zoom.setOnZoomInClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    preview.changeExposure(1, true);
-                }
-            });
-            seek_bar_zoom.setOnZoomOutClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    preview.changeExposure(-1, true);
                 }
             });
         } else if (visibility == View.VISIBLE) {
@@ -1238,7 +1030,7 @@ public class MainActivity extends AppCompatActivity {
         preview.stopVideo(false); // important to stop video, as we'll be changing camera parameters when the settings window closes
 
         Bundle bundle = new Bundle();
-        bundle.putInt("cameraId", this.preview.getCameraId());
+        //bundle.putInt("cameraId", this.preview.getCameraId());
         bundle.putBoolean("supports_auto_stabilise", this.supports_auto_stabilise);
         bundle.putBoolean("supports_force_video_4k", this.supports_force_video_4k);
         bundle.putBoolean("supports_face_detection", this.preview.supportsFaceDetection());
@@ -1250,7 +1042,7 @@ public class MainActivity extends AppCompatActivity {
         putBundleExtra(bundle, "isos", this.preview.getSupportedISOs());
         bundle.putString("iso_key", this.preview.getISOKey());
         if (this.preview.getCamera() != null) {
-            bundle.putString("parameters_string", this.preview.getCamera().getParameters().flatten());
+            bundle.putString("parameters_string", this.preview.get(0).getCamera().getParameters().flatten());
         }
 
         List<Camera.Size> preview_sizes = this.preview.getSupportedPreviewSizes();
@@ -1281,19 +1073,6 @@ public class MainActivity extends AppCompatActivity {
             bundle.putIntArray("resolution_heights", heights);
         }
 
-        List<String> video_quality = this.preview.getSupportedVideoQuality();
-        if (video_quality != null) {
-            String[] video_quality_arr = new String[video_quality.size()];
-            String[] video_quality_string_arr = new String[video_quality.size()];
-            int i = 0;
-            for (String value : video_quality) {
-                video_quality_arr[i] = value;
-                video_quality_string_arr[i] = this.preview.getCamcorderProfileDescription(value);
-                i++;
-            }
-            bundle.putStringArray("video_quality", video_quality_arr);
-            bundle.putStringArray("video_quality_string", video_quality_string_arr);
-        }
 
         List<Camera.Size> video_sizes = this.preview.getSupportedVideoSizes();
         if (video_sizes != null) {
@@ -1331,11 +1110,11 @@ public class MainActivity extends AppCompatActivity {
         }
         String saved_focus_value = null;
         if (preview.getCamera() != null && preview.isVideo() && !preview.focusIsVideo()) {
-            saved_focus_value = preview.getCurrentFocusValue(); // n.b., may still be null
-            // make sure we're into continuous video mode
-            // workaround for bug on Samsung Galaxy S5 with UHD, where if the user switches to another (non-continuous-video) focus mode, then goes to Settings, then returns and records video, the preview freezes and the video is corrupted
-            // so to be safe, we always reset to continuous video mode, and then reset it afterwards
-            preview.updateFocusForVideo(false);
+//            saved_focus_value = preview.getCurrentFocusValue(); // n.b., may still be null
+//            // make sure we're into continuous video mode
+//            // workaround for bug on Samsung Galaxy S5 with UHD, where if the user switches to another (non-continuous-video) focus mode, then goes to Settings, then returns and records video, the preview freezes and the video is corrupted
+//            // so to be safe, we always reset to continuous video mode, and then reset it afterwards
+//            preview.updateFocusForVideo(false);
         }
         if (MyDebug.LOG)
             Log.d(TAG, "saved_focus_value: " + saved_focus_value);
@@ -1346,7 +1125,7 @@ public class MainActivity extends AppCompatActivity {
         // but need workaround for Nexus 7 bug, where scene mode doesn't take effect unless the camera is restarted - I can reproduce this with other 3rd party camera apps, so may be a Nexus 7 issue...
         boolean need_reopen = false;
         if (preview.getCamera() != null) {
-            Camera.Parameters parameters = preview.getCamera().getParameters();
+            Camera.Parameters parameters = preview.getCamera()[0].getParameters();
             if (MyDebug.LOG)
                 Log.d(TAG, "scene mode was: " + parameters.getSceneMode());
             String key = Preview.getSceneModePreferenceKey();
@@ -1546,131 +1325,7 @@ public class MainActivity extends AppCompatActivity {
         return media;
     }
 
-    public void updateGalleryIconToBlank() {
-        if (MyDebug.LOG)
-            Log.d(TAG, "updateGalleryIconToBlank");
-        ImageButton galleryButton = (ImageButton) this.findViewById(R.id.gallery);
-        int bottom = galleryButton.getPaddingBottom();
-        int top = galleryButton.getPaddingTop();
-        int right = galleryButton.getPaddingRight();
-        int left = galleryButton.getPaddingLeft();
-        /*if( MyDebug.LOG )
-            Log.d(TAG, "padding: " + bottom);*/
-        galleryButton.setImageBitmap(null);
-        galleryButton.setImageResource(R.drawable.gallery);
-        // workaround for setImageResource also resetting padding, Android bug
-        galleryButton.setPadding(left, top, right, bottom);
-        gallery_bitmap = null;
-    }
 
-    public void updateGalleryIconToBitmap(Bitmap bitmap) {
-        if (MyDebug.LOG)
-            Log.d(TAG, "updateGalleryIconToBitmap");
-        ImageButton galleryButton = (ImageButton) this.findViewById(R.id.gallery);
-        galleryButton.setImageBitmap(bitmap);
-        gallery_bitmap = bitmap;
-    }
-
-    public void updateGalleryIcon() {
-        if (MyDebug.LOG)
-            Log.d(TAG, "updateGalleryIcon");
-        long time_s = System.currentTimeMillis();
-        Media media = getLatestMedia();
-        Bitmap thumbnail = null;
-        if (media != null) {
-            if (media.video) {
-                thumbnail = MediaStore.Video.Thumbnails.getThumbnail(getContentResolver(), media.id, MediaStore.Video.Thumbnails.MINI_KIND, null);
-            } else {
-                thumbnail = MediaStore.Images.Thumbnails.getThumbnail(getContentResolver(), media.id, MediaStore.Images.Thumbnails.MINI_KIND, null);
-            }
-            if (thumbnail != null) {
-                if (media.orientation != 0) {
-                    if (MyDebug.LOG)
-                        Log.d(TAG, "thumbnail size is " + thumbnail.getWidth() + " x " + thumbnail.getHeight());
-                    Matrix matrix = new Matrix();
-                    matrix.setRotate(media.orientation, thumbnail.getWidth() * 0.5f, thumbnail.getHeight() * 0.5f);
-                    try {
-                        Bitmap rotated_thumbnail = Bitmap.createBitmap(thumbnail, 0, 0, thumbnail.getWidth(), thumbnail.getHeight(), matrix, true);
-                        // careful, as rotated_thumbnail is sometimes not a copy!
-                        if (rotated_thumbnail != thumbnail) {
-                            thumbnail.recycle();
-                            thumbnail = rotated_thumbnail;
-                        }
-                    } catch (Throwable t) {
-                        if (MyDebug.LOG)
-                            Log.d(TAG, "failed to rotate thumbnail");
-                    }
-                }
-            }
-        }
-        if (thumbnail != null) {
-            if (MyDebug.LOG)
-                Log.d(TAG, "set gallery button to thumbnail");
-            updateGalleryIconToBitmap(thumbnail);
-        } else {
-            if (MyDebug.LOG)
-                Log.d(TAG, "set gallery button to blank");
-            updateGalleryIconToBlank();
-        }
-        if (MyDebug.LOG)
-            Log.d(TAG, "time to update gallery icon: " + (System.currentTimeMillis() - time_s));
-    }
-
-    public void clickedGallery(View view) {
-        if (MyDebug.LOG)
-            Log.d(TAG, "clickedGallery");
-        //Intent intent = new Intent(Intent.ACTION_VIEW, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        Uri uri = null;
-        Media media = getLatestMedia();
-        if (media != null) {
-            uri = media.uri;
-        }
-
-        if (uri != null) {
-            // check uri exists
-            if (MyDebug.LOG)
-                Log.d(TAG, "found most recent uri: " + uri);
-            try {
-                ContentResolver cr = getContentResolver();
-                ParcelFileDescriptor pfd = cr.openFileDescriptor(uri, "r");
-                if (pfd == null) {
-                    if (MyDebug.LOG)
-                        Log.d(TAG, "uri no longer exists (1): " + uri);
-                    uri = null;
-                }
-                pfd.close();
-            } catch (IOException e) {
-                if (MyDebug.LOG)
-                    Log.d(TAG, "uri no longer exists (2): " + uri);
-                uri = null;
-            }
-        }
-        if (uri == null) {
-            uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        }
-        if (!is_test) {
-            // don't do if testing, as unclear how to exit activity to finish test (for testGallery())
-            if (MyDebug.LOG)
-                Log.d(TAG, "launch uri:" + uri);
-            final String REVIEW_ACTION = "com.android.camera.action.REVIEW";
-            try {
-                // REVIEW_ACTION means we can view video files without autoplaying
-                Intent intent = new Intent(REVIEW_ACTION, uri);
-                this.startActivity(intent);
-            } catch (ActivityNotFoundException e) {
-                if (MyDebug.LOG)
-                    Log.d(TAG, "REVIEW_ACTION intent didn't work, try ACTION_VIEW");
-                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                // from http://stackoverflow.com/questions/11073832/no-activity-found-to-handle-intent - needed to fix crash if no gallery app installed
-                //Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("blah")); // test
-                if (intent.resolveActivity(getPackageManager()) != null) {
-                    this.startActivity(intent);
-                } else {
-                    preview.showToast(null, R.string.no_gallery_app);
-                }
-            }
-        }
-    }
 
     public void updateFolderHistory() {
         String folder_name = getSaveLocation();
@@ -1795,26 +1450,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //deprecation
     public void clickedShare(View view) {
-        if (MyDebug.LOG)
-            Log.d(TAG, "clickedShare");
-        this.preview.clickedShare();
+
     }
 
-    public void clickedTrash(View view) {
-        if (MyDebug.LOG)
-            Log.d(TAG, "clickedTrash");
-        this.preview.clickedTrash();
-        // Calling updateGalleryIcon() immediately has problem that it still returns the latest image that we've just deleted!
-        // But works okay if we call after a delay. 100ms works fine on Nexus 7 and Galaxy Nexus, but set to 500 just to be safe.
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                updateGalleryIcon();
-            }
-        }, 500);
-    }
+    //deprecation
+    public void clickedTrash(View view) {  }
 
     private void takePicture() {
         if (MyDebug.LOG)
@@ -1914,29 +1556,6 @@ public class MainActivity extends AppCompatActivity {
                     }
             );
             if (is_new_picture) {
-                /*ContentValues values = new ContentValues();
-                values.put(ImageColumns.TITLE, file.getName().substring(0, file.getName().lastIndexOf(".")));
-    	        values.put(ImageColumns.DISPLAY_NAME, file.getName());
-    	        values.put(ImageColumns.DATE_TAKEN, System.currentTimeMillis());
-    	        values.put(ImageColumns.MIME_TYPE, "image/jpeg");
-    	        // TODO: orientation
-    	        values.put(ImageColumns.DATA, file.getAbsolutePath());
-    	        Location location = preview.getLocation();
-    	        if( location != null ) {
-        	        values.put(ImageColumns.LATITUDE, location.getLatitude());
-        	        values.put(ImageColumns.LONGITUDE, location.getLongitude());
-    	        }
-    	        try {
-    	    		this.getContentResolver().insert(Images.Media.EXTERNAL_CONTENT_URI, values);
-    	        }
-    	        catch (Throwable th) {
-        	        // This can happen when the external volume is already mounted, but
-        	        // MediaScanner has not notify MediaProvider to add that volume.
-        	        // The picture is still safe and MediaScanner will find it and
-        	        // insert it into MediaProvider. The only problem is that the user
-        	        // cannot click the thumbnail to review the picture.
-        	        Log.e(TAG, "Failed to write MediaStore" + th);
-        	    }*/
                 this.sendBroadcast(new Intent(Camera.ACTION_NEW_PICTURE, Uri.fromFile(file)));
                 // for compatibility with some apps - apparently this is what used to be broadcast on Android?
                 this.sendBroadcast(new Intent("com.android.camera.NEW_PICTURE", Uri.fromFile(file)));
@@ -2059,7 +1678,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public Preview getPreview() {
-        return this.preview;
+        //TODO: better design to control each camera.
+        return this.preview.get(0);
     }
 
     // for testing:

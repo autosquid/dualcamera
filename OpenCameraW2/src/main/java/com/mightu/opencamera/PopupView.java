@@ -1,11 +1,5 @@
 package com.mightu.opencamera;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -24,11 +18,17 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.ImageView.ScaleType;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 
 public class PopupView extends LinearLayout {
 	private static final String TAG = "PopupView";
@@ -130,7 +130,8 @@ public class PopupView extends LinearLayout {
     			String size_string = picture_size.width + " x " + picture_size.height;
     			picture_size_strings.add(size_string);
     		}
-    		addArrayOptionsToPopup(picture_size_strings, getResources().getString(R.string.preference_resolution), picture_size_index, new ArrayOptionsPopupListener() {
+    		addArrayOptionsToPopup(picture_size_strings, getResources().getString(R.string.preference_resolution),
+					picture_size_index, new ArrayOptionsPopupListener() {
     			private void update() {
     				if( picture_size_index == -1 )
     					return;
@@ -398,7 +399,9 @@ public class PopupView extends LinearLayout {
 		public abstract int onClickNext();
     }
     
-    private void addArrayOptionsToPopup(final List<String> supported_options, final String title, final int current_index, final ArrayOptionsPopupListener listener) {
+    private void addArrayOptionsToPopup(final List<String> supported_options,
+										final String title, final int current_index,
+										final ArrayOptionsPopupListener listener) {
 		if( supported_options != null && current_index != -1 ) {
     		TextView text_view = new TextView(this.getContext());
     		text_view.setText(title);
