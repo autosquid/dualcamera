@@ -89,17 +89,6 @@
             android:src="@drawable/switch_camera" />
 
         <ImageButton
-            android:id="@+id/switch_video"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_alignParentTop="true"
-            android:contentDescription="@string/switch_video"
-            android:onClick="clickedSwitchVideo"
-            android:padding="10dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/switch_video" />
-
-        <ImageButton
             android:id="@+id/exposure"
             android:layout_width="50dp"
             android:layout_height="50dp"

@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
     }//startCaptureSensor
 
     void stopCaptureSensor(NewSessionNode nsNode) {
-		/* 结束sensor数据采集 */
+        /* 结束sensor数据采集 */
         //2015-4-14 23:05:03
         _captureStarted = false;
         nsNode.setEndTime(System.currentTimeMillis() * Consts.MS2S);
@@ -327,31 +327,24 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < save_location_history_size; i++) {
             String string = sharedPreferences.getString("save_location_history_" + i, null);
             if (string != null) {
-                if (MyDebug.LOG)
-                    Log.d(TAG, "save_location_history " + i + ": " + string);
                 save_location_history.add(string);
             }
         }
         // also update, just in case a new folder has been set
         updateFolderHistory();
-        //updateFolderHistory("/sdcard/Pictures/OpenCameraTest");
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
-            if (MyDebug.LOG)
-                Log.d(TAG, "found accelerometer");
+            if (MyDebug.LOG) Log.d(TAG, "found accelerometer");
             mSensorAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         } else {
-            if (MyDebug.LOG)
-                Log.d(TAG, "no support for accelerometer");
+            if (MyDebug.LOG) Log.d(TAG, "no support for accelerometer");
         }
         if (mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) != null) {
-            if (MyDebug.LOG)
-                Log.d(TAG, "found magnetic sensor");
+            if (MyDebug.LOG) Log.d(TAG, "found magnetic sensor");
             mSensorMagnetic = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         } else {
-            if (MyDebug.LOG)
-                Log.d(TAG, "no support for magnetic sensor");
+            if (MyDebug.LOG) Log.d(TAG, "no support for magnetic sensor");
         }
 
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -765,9 +758,6 @@ public class MainActivity extends AppCompatActivity {
             view = findViewById(R.id.exposure);
             view.setRotation(ui_rotation);
 
-            view = findViewById(R.id.switch_video);
-            view.setRotation(ui_rotation);
-
             view = findViewById(R.id.switch_camera);
             view.setRotation(ui_rotation);
 
@@ -1063,14 +1053,7 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("preference_save_location", new_folder.getAbsolutePath());
         editor.apply();
 
-        Toast.makeText(this, "Save to New Folder: "+ new_save_location, Toast.LENGTH_LONG);
-    }
-
-    public void clickedSwitchVideo(View view) {
-        if (MyDebug.LOG)
-            Log.d(TAG, "clickedSwitchVideo");
-        this.closePopup();
-        this.preview.switchVideo(true, true);
+        Toast.makeText(this, "Save to New Folder: " + new_save_location, Toast.LENGTH_LONG);
     }
 
     public void clickedFlash(View view) {
@@ -1158,12 +1141,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public boolean popupIsOpen() {
-
-
-        if (popup_view != null) {
-            return true;
-        }
-        return false;
+        return popup_view != null;
     }
 
 
@@ -1776,8 +1754,7 @@ public class MainActivity extends AppCompatActivity {
                             .setNegativeButton(R.string.answer_no, null)
                             .show();
                     setWindowFlagsForCamera();
-                }
-                else {
+                } else {
                     if (MyDebug.LOG)
                         Log.d(TAG, "selected: " + which);
                     if (which >= 0 && which < save_location_history.size()) {
@@ -2073,24 +2050,13 @@ public class MainActivity extends AppCompatActivity {
             long blocks = statFs.getAvailableBlocks();
             long size = statFs.getBlockSize();
             long free = (blocks * size) / 1048576;
-//			if( MyDebug.LOG ) {
-//				Log.i(TAG, "freeMemory blocks: " + blocks + " size: " + size + " free: " + free);
-//			}
+
             return free;
         } catch (IllegalArgumentException e) {
             // can fail on emulator, at least!
             return -1;
         }
     }
-
-    public static String getDonateLink() {
-        return "https://play.google.com/store/apps/details?id=harman.mark.donation";
-    }
-
-    /*public static String getDonateMarketLink() {
-        return "market://details?id=harman.mark.donation";
-    }*/
-
 
     public Preview getPreview() {
         return this.preview;

@@ -2,7 +2,6 @@ package com.mightu.opencamera;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -62,7 +61,6 @@ import org.simpleframework.xml.stream.Format;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
@@ -258,6 +256,12 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 
     //zhangxaochen:
     MainActivity _mainActivity = null;
+    Persister _persister = new Persister(new Format("<?xml version=\"1.0\" encoding= \"UTF-8\" ?>"));
+
+    final String _projXmlName = "collection-proj.xml";
+
+    final String _dataXmlPrefix = "sensor";
+    final String _dataXmlExt = "xml";
 
 
 
@@ -351,6 +355,20 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
         location_bitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.earth);
         location_off_bitmap = BitmapFactory.decodeResource(this.getResources(), R.drawable.earth_off);
     }
+
+	/*private void previewToCamera(float [] coords) {
+		float alpha = coords[0] / (float)this.getWidth();
+		float beta = coords[1] / (float)this.getHeight();
+		coords[0] = 2000.0f * alpha - 1000.0f;
+		coords[1] = 2000.0f * beta - 1000.0f;
+	}*/
+
+	/*private void cameraToPreview(float [] coords) {
+		float alpha = (coords[0] + 1000.0f) / 2000.0f;
+		float beta = (coords[1] + 1000.0f) / 2000.0f;
+		coords[0] = alpha * (float)this.getWidth();
+		coords[1] = beta * (float)this.getHeight();
+	}*/
 
     private void calculateCameraToPreviewMatrix() {
         camera_to_preview_matrix.reset();
@@ -5071,14 +5089,13 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
             public void run() {
                 final int visibility = show ? View.VISIBLE : View.GONE;
                 View switchCameraButton = (View) main_activity.findViewById(R.id.switch_camera);
-                View switchVideoButton = (View) main_activity.findViewById(R.id.switch_video);
+//                View switchVideoButton = (View) main_activity.findViewById(R.id.switch_video);
                 View exposureButton = (View) main_activity.findViewById(R.id.exposure);
                 View exposureLockButton = (View) main_activity.findViewById(R.id.exposure_lock);
                 View popupButton = (View) main_activity.findViewById(R.id.popup);
                 if (Camera.getNumberOfCameras() > 1)
                     switchCameraButton.setVisibility(visibility);
-                if (!is_video)
-                    switchVideoButton.setVisibility(visibility); // still allow switch video when recording video
+//                if (!is_video)                    switchVideoButton.setVisibility(visibility); // still allow switch video when recording video
                 if (exposures != null && !is_video) // still allow exposure when recording video
                     exposureButton.setVisibility(visibility);
                 if (is_exposure_locked_supported && !is_video) // still allow exposure lock when recording video

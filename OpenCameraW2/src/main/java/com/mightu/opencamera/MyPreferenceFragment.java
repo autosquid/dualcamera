@@ -188,33 +188,7 @@ public class MyPreferenceFragment extends PreferenceFragment {
             });
         }
 
-        {
-            final Preference pref = findPreference("preference_donate");
-            pref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference arg0) {
-                	if( pref.getKey().equals("preference_donate") ) {
-                		if( MyDebug.LOG )
-                			Log.d(TAG, "user clicked to donate");
-            	        /*Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(MainActivity.getDonateMarketLink()));
-            	        try {
-            	        	startActivity(browserIntent);
-            	        }
-            			catch(ActivityNotFoundException e) {
-            				// needed in case market:// not supported
-            				if( MyDebug.LOG )
-            					Log.d(TAG, "can't launch market:// intent");
-                	        browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(MainActivity.getDonateLink()));
-            	        	startActivity(browserIntent);
-            			}*/
-            	        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(MainActivity.getDonateLink()));
-        	        	startActivity(browserIntent);
-                		return false;
-                	}
-                	return false;
-                }
-            });
-        }
+
 
         {
             final Preference pref = findPreference("preference_about");
