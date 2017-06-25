@@ -386,7 +386,9 @@ public class MainActivity extends AppCompatActivity {
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
                 String volume_keys = sharedPreferences.getString("preference_volume_keys", "volume_take_photo");
                 if (volume_keys.equals("volume_take_photo")) {
-                    takePicture();
+                    View view = findViewById(R.id.take_photo);
+                    clickedTakePhoto(view);
+                    //takePicture();
                     return true;
                 } else if (volume_keys.equals("volume_focus")) {
                     preview.requestAutoFocus();
