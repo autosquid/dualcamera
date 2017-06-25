@@ -1,7 +1,5 @@
 package com.mightu.opencamera;
 
-import java.util.LinkedList;
-
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -10,6 +8,8 @@ import android.telephony.PhoneStateListener;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
 import android.telephony.gsm.GsmCellLocation;
+
+import java.util.LinkedList;
 
 public class MySensorListener implements SensorEventListener {
 	//2015年3月24日23:43:27 重新维护 HuaweiProj 时：
@@ -229,32 +229,6 @@ public class MySensorListener implements SensorEventListener {
 		}
 		double epochTime=_baseTimestamp*Consts.MS2S+(ts-_beginTimeInNano)*Consts.NS2S;
 		System.out.println("epochTime: "+epochTime);
-
-
-
-//		if(_timeStamp==INVALID){
-//			System.out.println("_timeStamp==INVALID");
-//			_timeStamp=ts;
-//		}
-//
-//		if(ts-_timeStamp<0)
-//			System.out.println("=======================");
-//
-//		if(_timeStamp!=ts){
-//			System.out.println("_timeStamp!=ts, "+_timeStamp+", "+ts+", "+eType);
-//			if(_sensorCnt>=_sensorNum){
-//				System.out.println("_sensorCnt>=_sensorNum");
-//				offerBuffers();
-//			}
-//			else
-//				System.out.println("_timeStamp!=ts && _sensorCnt<_sensorNum");
-//			_timeStamp=ts;
-//			_sensorCnt=0;
-//		}
-//		else
-//			System.out.println("_timeStamp==ts, "+ts);
-//
-//		addValidValues(eType, values);
 
 
 		if (eType == Sensor.TYPE_ACCELEROMETER) {
