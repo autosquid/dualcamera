@@ -4264,6 +4264,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
                             }
 
                             main_activity.broadcastFile(picFile, true, false);
+
                             test_last_saved_image = picFileName;
                         }
                         if (image_capture_intent) {
@@ -4272,6 +4273,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
                         }
                     }
 
+                    main_activity.submitjob();
                     //zhangxaochen:
                     _mainActivity._picNames.add(picFile.getName());
                     // 记录拍照epoch 时间

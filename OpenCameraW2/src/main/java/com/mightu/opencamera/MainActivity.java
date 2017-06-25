@@ -55,6 +55,7 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -221,6 +222,8 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        submitjob();
+
         // _listener 不 unregister， 但是 reset 以禁止存数据到内存
         this._listener.reset();
     }//stopCaptureSensor
@@ -288,7 +291,8 @@ public class MainActivity extends AppCompatActivity {
         Preview p1 = new Preview(this, savedInstanceState);
         ((ViewGroup) findViewById(R.id.preview)).addView(p1);
 
-        Preview p2 = new Preview(this, savedInstanceState);;
+        Preview p2 = new Preview(this, savedInstanceState);
+        ;
         ((ViewGroup) findViewById(R.id.preview2)).addView(p2);
 
 
@@ -331,7 +335,6 @@ public class MainActivity extends AppCompatActivity {
         if (MyDebug.LOG)
             Log.d(TAG, "time for Activity startup: " + (System.currentTimeMillis() - time_s));
     }
-
 
 
     private void preloadIcons(int icons_id) {
@@ -536,6 +539,9 @@ public class MainActivity extends AppCompatActivity {
         layoutUI();
 
         preview.onResume();
+
+        Button btn = (Button) findViewById(R.id.bt_new_save);
+        btn.setText(getButtonText());
 
         //zhangxaochen:
         _listener.reset();
@@ -766,9 +772,51 @@ public class MainActivity extends AppCompatActivity {
         super.onConfigurationChanged(newConfig);
     }
 
-    public void clickedTakePhoto(View view)
-    {
+    int currentjobs = 0;
+
+    void startalljobs() {
+        currentjobs = 3;
+    }
+
+    String getButtonText() {
+        String dataFolderName = this.getSaveLocation();
+        File projFolder = new File(dataFolderName);
+        int cntDataXml = projFolder.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String filename) {
+                return filename.contains(_dataXmlPrefix) && filename.endsWith(_dataXmlExt);
+            }
+        }).length;
+
+        return dataFolderName.substring(dataFolderName.lastIndexOf('/')+12)
+                + "(" + String.valueOf(cntDataXml) + ")";
+    }
+
+    void submitjob() {
+        synchronized (this) {
+            currentjobs -= 1;
+        }
+        if (alljobdone()) {
+            ImageButton takebutton = (ImageButton) findViewById(R.id.take_photo);
+            takebutton.setVisibility(View.VISIBLE);
+
+            Button nbt = (Button) findViewById(R.id.bt_new_save);
+
+            nbt.setText(getButtonText());
+        }
+    }
+
+    boolean alljobdone() {
+        return currentjobs == 0;
+    }
+
+    public void clickedTakePhoto(View view) {
         //todo: here we should start the sensor capture task
+        startalljobs();
+
+        ImageButton takebutton = (ImageButton) findViewById(R.id.take_photo);
+        takebutton.setVisibility(View.INVISIBLE);
+
         preview.takePicturePressed();
     }
 
@@ -838,7 +886,8 @@ public class MainActivity extends AppCompatActivity {
         editor.putString("preference_save_location", new_folder.getAbsolutePath());
         editor.apply();
 
-        Toast.makeText(this, "Save to New Folder: " + new_save_location, Toast.LENGTH_LONG);
+        Button nbt = (Button) view;
+        nbt.setText(getButtonText());
     }
 
     public void clickedFlash(View view) {
@@ -1306,7 +1355,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     public void updateFolderHistory() {
         String folder_name = getSaveLocation();
         updateFolderHistory(folder_name);
@@ -1436,7 +1484,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //deprecation
-    public void clickedTrash(View view) {  }
+    public void clickedTrash(View view) {
+    }
 
     private void takePicture() {
         if (MyDebug.LOG)

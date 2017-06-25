@@ -69,7 +69,7 @@
 
         <Button
             android:id="@+id/bt_new_save"
-            android:layout_width="50dp"
+            android:layout_width="100dp"
             android:layout_height="50dp"
             android:onClick="fastDefaultNewFolder"
             android:padding="10dp"
