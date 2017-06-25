@@ -17,7 +17,10 @@ public class DoublePreviewController {
 
     public DoublePreviewController(Preview p1, Preview p2) {
         previews = new Preview[]{p1, p2};
+        previews[0].setMain(true);
+        previews[1].setMain(false);
     }
+
      void prepare(){
          previews[0].switchToCamera(0);
          previews[1].switchToCamera(2);

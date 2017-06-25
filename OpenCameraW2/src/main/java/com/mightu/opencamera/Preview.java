@@ -261,7 +261,15 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
     final String _dataXmlPrefix = "sensor";
     final String _dataXmlExt = "xml";
 
+    public boolean ismain() {
+        return ismain;
+    }
 
+    public void setMain(boolean ismain) {
+        this.ismain = ismain;
+    }
+
+    private boolean ismain = false;
 
 
     /**
@@ -293,7 +301,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
         public void onTick(long millisUntilFinished) {
             System.out.println("onTick, millisUntilFinished, cnt: " + millisUntilFinished + ", " + cnt);
 
-            if (cnt == 0) {
+            if (cnt == 0 && ismain) {
                 _newSessionNode = new NewSessionNode();
                 _mainActivity.startCaptureSensor(_newSessionNode);
             }    		    		/* 第二次tick的时候拍照 */
@@ -306,7 +314,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 
         @Override
         public void onFinish() {
-            _mainActivity.stopCaptureSensor(_newSessionNode);
+            if (ismain) {_mainActivity.stopCaptureSensor(_newSessionNode);}
         } // onFinish
 
     }//capture_sensor_and_picture_t
@@ -3733,7 +3741,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
         takePictureTimer.schedule(takePictureTimerTask = new TakePictureTimerTask(), timer_delay);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.getContext());
-        if (sharedPreferences.getBoolean("preference_timer_beep", true)) {
+        if (sharedPreferences.getBoolean("preference_timer_beep", true) && ismain) {
             class BeepTimerTask extends TimerTask {
                 public void run() {
                     try {
