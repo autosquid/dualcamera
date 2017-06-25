@@ -521,6 +521,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    int existing_capture_count = 0;
+
     @Override
     protected void onResume() {
         if (MyDebug.LOG)
@@ -539,6 +541,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         layoutUI();
+
 
         preview.onResume();
 
@@ -643,22 +646,14 @@ public class MainActivity extends AppCompatActivity {
             view = findViewById(R.id.bt_new_save);
             view.setRotation(ui_rotation);
 
-            view = findViewById(R.id.switch_sensor_split);
-            view.setRotation(ui_rotation);
 
             view = findViewById(R.id.sensor_start);
-            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
-            layoutParams.addRule(align_parent_top, RelativeLayout.TRUE);
-            layoutParams.addRule(align_parent_bottom, 0);
-            layoutParams.addRule(left_of, R.id.switch_sensor_split);
-            layoutParams.addRule(right_of, 0);
-            view.setLayoutParams(layoutParams);
             view.setRotation(ui_rotation);
 
             //------------------------------
 
             view = findViewById(R.id.share);
-            layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) view.getLayoutParams();
             layoutParams.addRule(align_parent_top, RelativeLayout.TRUE);
             layoutParams.addRule(align_parent_bottom, 0);
             layoutParams.addRule(left_of, R.id.trash);
@@ -776,11 +771,11 @@ public class MainActivity extends AppCompatActivity {
 
     int currentjobs = 0;
 
-    void startalljobs() {
+    private void startalljobs() {
         currentjobs = 3;
     }
 
-    String getButtonText() {
+    private void find_existing_capture_count() {
         String dataFolderName = this.getSaveLocation();
         try {
             File projFolder = new File(dataFolderName);
@@ -791,9 +786,21 @@ public class MainActivity extends AppCompatActivity {
                 }
             }).length;
 
+            existing_capture_count = cntDataXml;
+        } catch (Exception e) {
+            existing_capture_count = 0;
+        }
+    }
+
+    private String getButtonText() {
+        String dataFolderName = this.getSaveLocation();
+        try {
+            File projFolder = new File(dataFolderName);
+            int cntDataXml = existing_capture_count;
+
             return dataFolderName.substring(dataFolderName.lastIndexOf('/') + 12)
                     + "(" + String.valueOf(cntDataXml) + ")";
-        } catch (Exception e){
+        } catch (Exception e) {
             return getString(R.string.button_default_text);
         }
     }
@@ -801,23 +808,20 @@ public class MainActivity extends AppCompatActivity {
     void submitjob() {
         synchronized (this) {
             currentjobs -= 1;
+
+            if (currentjobs == 0) {
+                existing_capture_count += 1;
+
+                ImageButton takebutton = (ImageButton) findViewById(R.id.take_photo);
+                takebutton.setVisibility(View.VISIBLE);
+
+                Button nbt = (Button) findViewById(R.id.bt_new_save);
+                nbt.setText(getButtonText());
+            }
         }
-        if (alljobdone()) {
-            ImageButton takebutton = (ImageButton) findViewById(R.id.take_photo);
-            takebutton.setVisibility(View.VISIBLE);
-
-            Button nbt = (Button) findViewById(R.id.bt_new_save);
-
-            nbt.setText(getButtonText());
-        }
-    }
-
-    boolean alljobdone() {
-        return currentjobs == 0;
     }
 
     public void clickedTakePhoto(View view) {
-        //todo: here we should start the sensor capture task
         startalljobs();
 
         ImageButton takebutton = (ImageButton) findViewById(R.id.take_photo);
@@ -825,23 +829,6 @@ public class MainActivity extends AppCompatActivity {
 
         preview.takePicturePressed();
     }
-
-    //zhangxaochen:
-    public void clickedSwitchSensorSplit(View view) {
-        if (MyDebug.LOG)
-            Log.d(TAG, "clickedSwitchSensorSplit");
-
-        //切换 "分/合" 图标:
-        this._isSensorSplit = !this._isSensorSplit;
-        ImageButton btnSensorSplit = (ImageButton) findViewById(R.id.switch_sensor_split);
-        btnSensorSplit.setImageResource(this._isSensorSplit ? R.drawable.sensor_fen
-                : R.drawable.sensor_he);
-
-        //"分" 时, 单独显示一个 "sensor_on/off" 图标, 用于控制采集：
-        ImageButton btnSensorStart = (ImageButton) findViewById(R.id.sensor_start);
-        btnSensorStart.setVisibility(_isSensorSplit ? View.VISIBLE : View.GONE);
-
-    }//clickedSwitchCamera
 
     /**
      * 触摸"△/||"按钮, 回调
@@ -857,10 +844,6 @@ public class MainActivity extends AppCompatActivity {
         ImageButton btnSensorStart = (ImageButton) findViewById(R.id.sensor_start);
         btnSensorStart.setImageResource(this._isSensorOn ? R.drawable.sensor_on
                 : R.drawable.sensor_off);
-        //此时 "分合" 禁用:
-        ImageButton btnSensorSplit = (ImageButton) findViewById(R.id.switch_sensor_split);
-        //btnSensorSplit.setClickable(!is_sensor_on);
-        btnSensorSplit.setEnabled(!_isSensorOn);
 
         if (_isSensorOn)
             startCaptureSensor(_newSessionNode);
@@ -1664,11 +1647,11 @@ public class MainActivity extends AppCompatActivity {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmssSSS").format(new Date());
         String index = "";
         File mediaFile = null;
-        String suffix = null;
+        String suffix = "_"+String.valueOf(existing_capture_count);
         if (p == preview.get(0))
-            suffix = "_0";
+            suffix += "_0";
         else
-            suffix = "_1";
+            suffix += "_1";
         for (int count = 1; count <= 100; count++) {
             if (type == MEDIA_TYPE_IMAGE) {
                 mediaFile = new File(mediaStorageDir.getPath() + File.separator +
