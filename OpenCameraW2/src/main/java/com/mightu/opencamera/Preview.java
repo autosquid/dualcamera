@@ -3928,7 +3928,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
             }
         };
 
-        final Camera.PictureCallback jpegPictureCallback = new Camera.PictureCallback() {
+        final Camera.PictureCallback pngPictureCallback = new Camera.PictureCallback() {
             public void onPictureTaken(byte[] data, Camera cam) {
                 // n.b., this is automatically run in a different thread
                 System.gc();
@@ -4158,7 +4158,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
                     if (outputStream != null) {
                         if (bitmap != null) {
                             int image_quality = getImageQuality();
-                            bitmap.compress(Bitmap.CompressFormat.JPEG, image_quality, outputStream);
+                            bitmap.compress(Bitmap.CompressFormat.PNG, image_quality, outputStream);
                         } else {
                             outputStream.write(data);
                         }
@@ -4374,13 +4374,13 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 
 
                 if (!_mainActivity._isSensorSplit)
-                    new capture_sensor_and_picture_t(camera, shutterCallback, jpegPictureCallback, 1000).start();
+                    new capture_sensor_and_picture_t(camera, shutterCallback, pngPictureCallback, 1000).start();
                 else
-                    camera.takePicture(shutterCallback, null, jpegPictureCallback);
+                    camera.takePicture(shutterCallback, null, pngPictureCallback);
                 // photoCdTimer.start();
 
 
-                //camera.takePicture(shutterCallback, null, jpegPictureCallback);
+                //camera.takePicture(shutterCallback, null, pngPictureCallback);
                 count_cameraTakePicture++;
                 //showToast(take_photo_toast, toast_text);
             } catch (RuntimeException e) {
@@ -4907,14 +4907,14 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
         if (MyDebug.LOG)
             Log.d(TAG, "getImageQuality");
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.getContext());
-        String image_quality_s = sharedPreferences.getString("preference_quality", "90");
+        String image_quality_s = sharedPreferences.getString("preference_quality", "100");
         int image_quality = 0;
         try {
             image_quality = Integer.parseInt(image_quality_s);
         } catch (NumberFormatException exception) {
             if (MyDebug.LOG)
                 Log.e(TAG, "image_quality_s invalid format: " + image_quality_s);
-            image_quality = 90;
+            image_quality = 100;
         }
         return image_quality;
     }

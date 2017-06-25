@@ -1666,7 +1666,7 @@ public class MainActivity extends AppCompatActivity {
         for (int count = 1; count <= 100; count++) {
             if (type == MEDIA_TYPE_IMAGE) {
                 mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                        "IMG_" + timeStamp + index + suffix + ".jpg");
+                        "IMG_" + timeStamp + index + suffix + ".png");
             } else if (type == MEDIA_TYPE_VIDEO) {
                 mediaFile = new File(mediaStorageDir.getPath() + File.separator +
                         "VID_" + timeStamp + index + ".mp4");
