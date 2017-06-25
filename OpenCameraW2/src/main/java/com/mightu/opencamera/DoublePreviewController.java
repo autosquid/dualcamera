@@ -39,7 +39,7 @@ public class DoublePreviewController {
 
 
     void changeExposure(int change, boolean update_seek_bar) {
-        for (int i = 0; i < 2; i += 1) {
+        for (int i = 0; i < 1; i += 1) {
             previews[i].changeExposure(change, update_seek_bar);
         }
     }
@@ -52,15 +52,11 @@ public class DoublePreviewController {
     }
 
     void cycleFlash() {
-        for (int i = 0; i < 2; i += 1) {
-            previews[i].cycleFlash();
-        }
+        previews[0].cycleFlash();
     }
 
     void cycleFocusMode() {
-        for (int i = 0; i < 2; i += 1) {
-            previews[i].cycleFocusMode();
-        }
+            previews[0].cycleFocusMode();
     }
 
     boolean focusIsVideo() {
@@ -134,14 +130,19 @@ public class DoublePreviewController {
 
     List<String> getSupportedFocusValues() {
         List<String> a = previews[0].getSupportedFocusValues();
-        a.retainAll(previews[1].getSupportedFocusValues());
+
         return a;
+//        if (a==null) return null;
+//        a.retainAll(previews[1].getSupportedFocusValues());
+//        return a;
     }
 
     List<String> getSupportedISOs() {
         List<String> a = previews[0].getSupportedISOs();
-        a.retainAll(previews[1].getSupportedISOs());
         return a;
+//        if (a==null) return null;
+//        a.retainAll(previews[1].getSupportedISOs());
+//        return a;
     }
 
     List<Camera.Size> getSupportedPictureSizes() {
@@ -275,7 +276,7 @@ public class DoublePreviewController {
 
 
     public void showToast(final ToastBoxer clear_toast, final String message, final int duration) {
-        for (int i = 0; i < 2; i += 1) {
+        for (int i = 0; i < 1; i += 1) {
             previews[i].showToast(clear_toast, message, duration);
         }
     }

@@ -275,7 +275,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
     /**
      * 存在bug在sumsung手机上，如果设置时间为(2*interval, interval)，那么
      * 第一下的onTick将在Timer启动时候调用，而不是在interval时候调用。
-     *
+     * <p>
      * 用了比较naive的方法来解决，设置总时间为3个时间间隔，在第二个onTick调用时候，拍摄照片
      */
     class capture_sensor_and_picture_t extends CountDownTimer {
@@ -304,8 +304,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
             if (cnt == 0 && ismain) {
                 _newSessionNode = new NewSessionNode();
                 _mainActivity.startCaptureSensor(_newSessionNode);
-            }    		    		/* 第二次tick的时候拍照 */
-            else if (cnt == 1) {
+            }    		    		/* 第二次tick的时候拍照 */ else if (cnt == 1) {
                 camera.takePicture(shutterCallback, null, jpegPictureCallback);
             }
 
@@ -314,7 +313,9 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 
         @Override
         public void onFinish() {
-            if (ismain) {_mainActivity.stopCaptureSensor(_newSessionNode);}
+            if (ismain) {
+                _mainActivity.stopCaptureSensor(_newSessionNode);
+            }
         } // onFinish
 
     }//capture_sensor_and_picture_t
@@ -363,7 +364,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
     }
 
 	/*private void previewToCamera(float [] coords) {
-		float alpha = coords[0] / (float)this.getWidth();
+        float alpha = coords[0] / (float)this.getWidth();
 		float beta = coords[1] / (float)this.getHeight();
 		coords[0] = 2000.0f * alpha - 1000.0f;
 		coords[1] = 2000.0f * beta - 1000.0f;
@@ -1171,7 +1172,12 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
                 if (isos_array != null && isos_array.length > 0) {
                     isos = new ArrayList<String>();
                     for (int i = 0; i < isos_array.length; i++) {
-                        isos.add(isos_array[i]);
+                        if (isos_array[i] == "auto") continue;
+                        try {
+                            if (Integer.valueOf(isos_array[i]) <= 200)
+                                isos.add(isos_array[i]);
+                        } catch (Exception e) {
+                        }
                     }
                 }
             }
@@ -1191,12 +1197,13 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
                 if (isos == null) {
                     // set a default for some devices which have an iso_key, but don't give a list of supported ISOs
                     isos = new ArrayList<String>();
-                    isos.add("auto");
+            //        isos.add("auto");
                     isos.add("100");
                     isos.add("200");
-                    isos.add("400");
-                    isos.add("800");
-                    isos.add("1600");
+                    // iso can not be too high
+//                    isos.add("400");
+//                    isos.add("800");
+//                    isos.add("1600");
                 }
                 String iso = setupValuesPref(isos, getISOPreferenceKey(), "auto");
                 if (iso != null) {
@@ -1465,6 +1472,11 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
                 Log.d(TAG, "camera not opened!");
             return;
         }
+
+        //todo: dead!!
+        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+        parameters.setJpegQuality(100);
+
         try {
             camera.setParameters(parameters);
             if (MyDebug.LOG)
@@ -1994,7 +2006,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 
         int targetHeight = Math.min(display_size.y, display_size.x);
 
-      //  int targetHeight = split_target_height;
+        //  int targetHeight = split_target_height;
         if (targetHeight <= 0) {
             targetHeight = display_size.y;
         }
@@ -2057,7 +2069,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
 
     private Camera.Size getOptimalPreviewSize(List<Camera.Size> sizes, int w, int h) {
         final double ASPECT_TOLERANCE = 0.1;
-        double targetRatio=(double)h / w;
+        double targetRatio = (double) h / w;
 
         if (sizes == null) return null;
 
@@ -4141,8 +4153,7 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
                             main_activity.setResult(Activity.RESULT_OK, new Intent("inline-data").putExtra("data", bitmap));
                             main_activity.finish();
                         }
-                    }
-                    else {//if( !image_capture_intent ) {
+                    } else {//if( !image_capture_intent ) {
                         picFile = main_activity.getOutputMediaFile(Preview.this, MainActivity.MEDIA_TYPE_IMAGE);
                         if (picFile == null) {
                             Log.e(TAG, "Couldn't create media image file; check storage permissions?");
@@ -4904,6 +4915,9 @@ public class Preview extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private int getImageQuality() {
+        if (true)
+            return 100;
+
         if (MyDebug.LOG)
             Log.d(TAG, "getImageQuality");
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this.getContext());

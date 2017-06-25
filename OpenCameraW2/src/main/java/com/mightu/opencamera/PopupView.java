@@ -46,7 +46,9 @@ public class PopupView extends LinearLayout {
 		final MainActivity main_activity = (MainActivity)this.getContext();
 		final Preview preview = main_activity.getPreview();
         List<String> supported_flash_values = preview.getSupportedFlashValues();
-    	addButtonOptionsToPopup(supported_flash_values, R.array.flash_icons, R.array.flash_values, getResources().getString(R.string.flash_mode), preview.getCurrentFlashValue(), new ButtonOptionsPopupListener() {
+    	addButtonOptionsToPopup(supported_flash_values,
+				R.array.flash_icons, R.array.flash_values,
+				getResources().getString(R.string.flash_mode), preview.getCurrentFlashValue(), new ButtonOptionsPopupListener() {
 			@Override
 			public void onClick(String option) {
 				if( MyDebug.LOG )

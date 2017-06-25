@@ -199,5 +199,6 @@
     <string name="failed_create_folder">Failed to create folder</string>
     <string name="folder_exists">Folder already exists</string>
     <string name="new_save_folder">New</string>
+    <string name="button_default_text">New</string>
 
 </resources>

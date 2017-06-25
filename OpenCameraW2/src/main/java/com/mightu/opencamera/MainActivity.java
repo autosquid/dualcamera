@@ -780,16 +780,20 @@ public class MainActivity extends AppCompatActivity {
 
     String getButtonText() {
         String dataFolderName = this.getSaveLocation();
-        File projFolder = new File(dataFolderName);
-        int cntDataXml = projFolder.list(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String filename) {
-                return filename.contains(_dataXmlPrefix) && filename.endsWith(_dataXmlExt);
-            }
-        }).length;
+        try {
+            File projFolder = new File(dataFolderName);
+            int cntDataXml = projFolder.list(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String filename) {
+                    return filename.contains(_dataXmlPrefix) && filename.endsWith(_dataXmlExt);
+                }
+            }).length;
 
-        return dataFolderName.substring(dataFolderName.lastIndexOf('/')+12)
-                + "(" + String.valueOf(cntDataXml) + ")";
+            return dataFolderName.substring(dataFolderName.lastIndexOf('/') + 12)
+                    + "(" + String.valueOf(cntDataXml) + ")";
+        } catch (Exception e){
+            return getString(R.string.button_default_text);
+        }
     }
 
     void submitjob() {
