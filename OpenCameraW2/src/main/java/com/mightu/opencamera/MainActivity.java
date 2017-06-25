@@ -31,7 +31,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.StatFs;
 import android.os.StrictMode;
-import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images.ImageColumns;
@@ -767,28 +766,9 @@ public class MainActivity extends AppCompatActivity {
         super.onConfigurationChanged(newConfig);
     }
 
-
-    private void takeTwoPicture(int cameraSwitchingTo) {
-        //TODO: wait till ok
-        if (MyDebug.LOG)
-            Log.d(TAG, "which should take Picture" + String.valueOf(cameraSwitchingTo));
-        closePopup();
-
-        this.preview.takePicturePressed();
-
-        Log.d(TAG, "After Switch, which camera is this? " + String.valueOf(this.preview.getCameraId()));
-        Log.d(TAG, "===================");
-    }
-
-    int currentCamID;
-
-    public void autoClickedTakePhoto(View view) {
-        this.takeTwoPicture(0);
-        SystemClock.sleep(10000);
-        this.takeTwoPicture(2);
-    }
-
-    public void clickedTakePhoto(View view) {
+    public void clickedTakePhoto(View view)
+    {
+        //todo: here we should start the sensor capture task
         preview.takePicturePressed();
     }
 
@@ -1607,7 +1587,7 @@ public class MainActivity extends AppCompatActivity {
      * Create a File for saving an image or video
      */
     @SuppressLint("SimpleDateFormat")
-    public File getOutputMediaFile(int type) {
+    public File getOutputMediaFile(Preview p, int type) {
         // To be safe, you should check that the SDCard is mounted
         // using Environment.getExternalStorageState() before doing this.
 
@@ -1629,10 +1609,15 @@ public class MainActivity extends AppCompatActivity {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmssSSS").format(new Date());
         String index = "";
         File mediaFile = null;
+        String suffix = null;
+        if (p == preview.get(0))
+            suffix = "_0";
+        else
+            suffix = "_1";
         for (int count = 1; count <= 100; count++) {
             if (type == MEDIA_TYPE_IMAGE) {
                 mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                        "IMG_" + timeStamp + index + ".jpg");
+                        "IMG_" + timeStamp + index + suffix + ".jpg");
             } else if (type == MEDIA_TYPE_VIDEO) {
                 mediaFile = new File(mediaStorageDir.getPath() + File.separator +
                         "VID_" + timeStamp + index + ".mp4");
